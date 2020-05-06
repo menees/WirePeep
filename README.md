@@ -1,0 +1,2 @@
+# WirePeep
+WirePeep is a free, open-source Internet downtime monitor written in C# with .NET Core. It periodically checks for connectivity to your Internet gateway, various public DNS servers, and other systems (e.g., your cable modem).

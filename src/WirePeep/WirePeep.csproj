@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFrameworks>netcoreapp3.1;net45</TargetFrameworks>
+		<UseWPF>true</UseWPF>
+		<Description>Free, open-source Internet downtime monitor</Description>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Menees.Windows.Presentation" Version="4.9.6" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\WirePeep.Common\WirePeep.Common.csproj" />
+	</ItemGroup>
+
+</Project>
