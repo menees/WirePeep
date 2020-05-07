@@ -17,6 +17,7 @@
 	using System.Windows.Navigation;
 	using System.Windows.Shapes;
 	using Menees;
+	using Menees.Shell;
 	using Menees.Windows.Presentation;
 
 	#endregion
@@ -60,6 +61,31 @@
 			// TODO: Save settings. [Bill, 5/6/2020]
 			this.GetHashCode();
 			settings.GetHashCode();
+		}
+
+		private void Exit_Click(object sender, RoutedEventArgs e)
+		{
+			this.Close();
+		}
+
+		private void ViewOptions_Click(object sender, RoutedEventArgs e)
+		{
+			// TODO: Finish ViewOptions_Click. [Bill, 5/6/2020]
+		}
+
+		private void Help_Click(object sender, RoutedEventArgs e)
+		{
+			WindowsUtility.ShellExecute(this, "http://www.wirepeep.com");
+		}
+
+		private void AddLocation_Click(object sender, RoutedEventArgs e)
+		{
+			// TODO: Finish AddLocation_Click. [Bill, 5/7/2020]
+		}
+
+		private void ExportLog_Click(object sender, RoutedEventArgs e)
+		{
+			// TODO: Finish ExportLog_Click. [Bill, 5/7/2020]
 		}
 
 		#endregion

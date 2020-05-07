@@ -1,12 +1,69 @@
 ﻿<Window x:Class="WirePeep.MainWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:WirePeep"
-        mc:Ignorable="d"
-        Title="WirePeep - Internet Downtime Monitor" Height="450" Width="800">
-    <Grid>
+		xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+		xmlns:local="clr-namespace:WirePeep"
+		mc:Ignorable="d"
+		Title="WirePeep - Internet Downtime Monitor" Height="450" Width="800">
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition/>
+			<RowDefinition/>
+			<RowDefinition Height="Auto"/>
+		</Grid.RowDefinitions>
+		<Menu Grid.Row="0">
+			<MenuItem Header="_View">
+				<MenuItem Header="_Add Location..." Click="AddLocation_Click"/>
+				<MenuItem Header="_Export Log..." Click="ExportLog_Click"/>
+				<Separator/>
+				<MenuItem Header="_Options" Click="ViewOptions_Click"/>
+				<Separator/>
+				<MenuItem Header="E_xit" Click="Exit_Click"/>
+			</MenuItem>
+			<MenuItem Header="_Help">
+				<MenuItem Header="www.Wire_Peep.com" Click="Help_Click" AutomationProperties.AcceleratorKey="F1"/>
+			</MenuItem>
+		</Menu>
+		<DataGrid IsReadOnly="True" Grid.Row="1">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Peer Group"/>
+                <DataGridTextColumn Header="Name"/>
+				<DataGridTextColumn Header="IP Address"/>
+				<DataGridTextColumn Header="Status"/>
+				<DataGridTextColumn Header="Response (ms)"/>
+				<DataGridTextColumn Header="Poll (ms)"/>
+				<DataGridTextColumn Header="Wait (ms)"/>
+			</DataGrid.Columns>
+        </DataGrid>
 
-    </Grid>
+		<DataGrid IsReadOnly="True" Grid.Row="2">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Peer Group"/>
+				<DataGridTextColumn Header="Start"/>
+				<DataGridTextColumn Header="Length"/>
+				<DataGridTextColumn Header="End"/>
+				<DataGridTextColumn Header="Since Previous"/>
+				<DataGridTextColumn Header="Comment"/>
+			</DataGrid.Columns>
+
+        </DataGrid>
+
+		<StatusBar Grid.Row="3">
+			<StatusBarItem>
+				<TextBlock>Monitored time:</TextBlock>
+			</StatusBarItem>
+			<StatusBarItem>
+				<TextBlock>0:00:00</TextBlock>
+			</StatusBarItem>
+			<Separator/>
+			<StatusBarItem>
+				<TextBlock>Failure count:</TextBlock>
+			</StatusBarItem>
+			<StatusBarItem>
+				<TextBlock>0</TextBlock>
+			</StatusBarItem>
+		</StatusBar>
+	</Grid>
 </Window>
