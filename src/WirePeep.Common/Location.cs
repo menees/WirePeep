@@ -1,17 +1,43 @@
-﻿namespace WirePeep
+﻿#region Using Directives
+
+using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
+using Menees;
+
+#endregion
+
+namespace WirePeep
 {
-	#region Using Directives
-
-	using System;
-	using System.Collections.Generic;
-	using System.Text;
-
-	#endregion
-
 	/// <summary>
-	/// Provides a friendly-name associated with an IPAddress (in case it doesn't have a host name readily available).
+	/// Provides a friendly name associated with an IPAddress.
 	/// </summary>
 	public sealed class Location
 	{
+		#region Constructors
+
+		public Location(PeerGroup peerGroup, string name, IPAddress address)
+		{
+			Conditions.RequireReference(peerGroup, nameof(peerGroup));
+			Conditions.RequireString(name, nameof(name));
+
+			this.PeerGroup = peerGroup;
+			this.Name = name;
+			this.Address = address;
+		}
+
+		#endregion
+
+		#region Public Properties
+
+		public PeerGroup PeerGroup { get; }
+
+		public string Name { get; }
+
+		public IPAddress Address { get; }
+
+		#endregion
 	}
 }

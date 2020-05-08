@@ -13,5 +13,3 @@ csharp_style_prefer_range_operator = true:silent
 
 # IDE0066: Convert switch statement to expression
 csharp_style_prefer_switch_expression = false:silent
-
-csharp_using_directive_placement = inside_namespace

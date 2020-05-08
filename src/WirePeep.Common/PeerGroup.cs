@@ -1,43 +1,47 @@
-﻿namespace WirePeep
+﻿#region Using Directives
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using Menees;
+
+#endregion
+
+namespace WirePeep
 {
-	#region Using Directives
-
-	using System;
-	using System.Collections;
-	using System.Collections.Generic;
-	using System.Linq;
-	using System.Text;
-
-	#endregion
-
 	/// <summary>
-	/// A named group of <see cref="Location"/>s where connectivity to any one of them
-	/// is sufficient to consider the system in a functional state.
+	/// If any of the <see cref="Location"/>s associated with this peer group can be contacted,
+	/// then we report a connectivity success for this group.
+	///
+	/// If none of the <see cref="Location"/>s associated with this peer group can be contacted,
+	/// then we report a connectivity failure for this group.
 	/// </summary>
-#pragma warning disable CA1710 // Identifiers should have correct suffix. Group is clearer than Collection here.
-	public sealed class PeerGroup : IEnumerable<Location>
-#pragma warning restore CA1710 // Identifiers should have correct suffix
+	public sealed class PeerGroup
 	{
-		#region Private Methods
-
-		private readonly List<Location> locations;
-
-		#endregion
-
 		#region Constructors
 
-		public PeerGroup(IEnumerable<Location> locations)
+		public PeerGroup(string name, TimeSpan fail, TimeSpan poll, TimeSpan wait)
 		{
-			this.locations = new List<Location>(locations ?? Enumerable.Empty<Location>());
+			Conditions.RequireString(name, nameof(name));
+			this.Name = name;
+			this.Fail = fail;
+			this.Poll = poll;
+			this.Wait = wait;
 		}
 
 		#endregion
 
-		#region Public Methods
+		#region Public Properties
 
-		public IEnumerator<Location> GetEnumerator() => this.locations.GetEnumerator();
+		public string Name { get; }
 
-		IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
+		public TimeSpan Fail { get; }
+
+		public TimeSpan Poll { get; }
+
+		public TimeSpan Wait { get; }
 
 		#endregion
 	}

@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Defaults>
+	<PeerGroup Name="DNS" FailSeconds="10" PollSeconds="5" WaitMilliseconds="200">
+		<!-- Compare at https://www.dnsperf.com/. -->
+		<Location Name="Google">
+			<Address>8.8.8.8</Address>
+			<Address>8.8.4.4</Address>
+		</Location>
+		<Location Name="CloudFlare">
+			<Address>1.1.1.1</Address>
+			<Address>1.0.0.1</Address>
+		</Location>
+		<Location Name="Neustar">
+			<Address>156.154.70.5</Address>
+			<Address>156.154.71.5</Address>
+		</Location>
+		<Location Name="OpenDNS">
+			<Address>208.67.222.222</Address>
+			<Address>208.67.220.220</Address>
+		</Location>
+		<Location Name="Quad9">
+			<Address>9.9.9.9</Address>
+			<Address>149.112.112.112</Address>
+		</Location>
+		<Location Name="CenturyLink">
+			<Address>4.2.2.2</Address>
+			<Address>4.2.2.3</Address>
+		</Location>
+		<Location Name="VeriSign">
+			<Address>64.6.64.6</Address>
+			<Address>64.6.65.6</Address>
+		</Location>
+		<Location Name="Hurricane Electric">
+			<Address>74.82.42.42</Address>
+		</Location>
+	</PeerGroup>
+
+	<PeerGroup Name="Default Gateway" FailSeconds="4" PollSeconds="2" WaitMilliseconds="50">
+		<Find Type="DefaultGateway"/>
+	</PeerGroup>
+
+	<PeerGroup Name="Cable Modem" FailSeconds="4" PollSeconds="2" WaitMilliseconds="50">
+		<Find Type="CableModem">
+			<Address>192.168.100.1</Address>
+			<Address>10.0.0.1</Address>
+			<Address>10.1.0.1</Address>
+		</Find>
+	</PeerGroup>
+</Defaults>

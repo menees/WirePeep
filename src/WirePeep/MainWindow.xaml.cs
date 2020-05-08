@@ -1,32 +1,33 @@
-﻿namespace WirePeep
+﻿#region Using Directives
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
+using Menees;
+using Menees.Shell;
+using Menees.Windows.Presentation;
+
+#endregion
+
+namespace WirePeep
 {
-	#region Using Directives
-
-	using System;
-	using System.Collections.Generic;
-	using System.Linq;
-	using System.Text;
-	using System.Threading.Tasks;
-	using System.Windows;
-	using System.Windows.Controls;
-	using System.Windows.Data;
-	using System.Windows.Documents;
-	using System.Windows.Input;
-	using System.Windows.Media;
-	using System.Windows.Media.Imaging;
-	using System.Windows.Navigation;
-	using System.Windows.Shapes;
-	using Menees;
-	using Menees.Shell;
-	using Menees.Windows.Presentation;
-
-	#endregion
-
 	public partial class MainWindow : Window
 	{
 		#region Private Data Members
 
 		private readonly WindowSaver saver;
+		private Profile configuration;
 
 		#endregion
 
@@ -48,44 +49,42 @@
 		private void Saver_LoadSettings(object sender, SettingsEventArgs e)
 		{
 			var settings = e.SettingsNode;
-
-			// TODO: Load settings. [Bill, 5/6/2020]
-			this.GetHashCode();
-			settings.GetHashCode();
+			this.configuration = new Profile(settings.GetSubNode(nameof(Profile), false));
 		}
 
 		private void Saver_SaveSettings(object sender, SettingsEventArgs e)
 		{
 			var settings = e.SettingsNode;
-
-			// TODO: Save settings. [Bill, 5/6/2020]
-			this.GetHashCode();
-			settings.GetHashCode();
+			this.configuration.Save(settings.GetSubNode(nameof(Profile), true));
 		}
 
-		private void Exit_Click(object sender, RoutedEventArgs e)
+		private void ExitExecuted(object sender, ExecutedRoutedEventArgs e)
 		{
 			this.Close();
 		}
 
-		private void ViewOptions_Click(object sender, RoutedEventArgs e)
+		private void ViewOptionsExecuted(object sender, ExecutedRoutedEventArgs e)
 		{
-			// TODO: Finish ViewOptions_Click. [Bill, 5/6/2020]
+			// TODO: Finish ViewOptionsExecuted. [Bill, 5/7/2020]
+			MessageBox.Show(nameof(this.ViewOptionsExecuted));
+			this.saver.Save();
 		}
 
-		private void Help_Click(object sender, RoutedEventArgs e)
+		private void HelpExecuted(object sender, ExecutedRoutedEventArgs e)
 		{
 			WindowsUtility.ShellExecute(this, "http://www.wirepeep.com");
 		}
 
-		private void AddLocation_Click(object sender, RoutedEventArgs e)
+		private void AddLocationExecuted(object sender, ExecutedRoutedEventArgs e)
 		{
-			// TODO: Finish AddLocation_Click. [Bill, 5/7/2020]
+			// TODO: Finish AddLocationExecuted. [Bill, 5/7/2020]
+			MessageBox.Show(nameof(this.AddLocationExecuted));
 		}
 
-		private void ExportLog_Click(object sender, RoutedEventArgs e)
+		private void ExportLogExecuted(object sender, ExecutedRoutedEventArgs e)
 		{
-			// TODO: Finish ExportLog_Click. [Bill, 5/7/2020]
+			// TODO: Finish ExportLogExecuted. [Bill, 5/7/2020]
+			MessageBox.Show(nameof(this.ExportLogExecuted));
 		}
 
 		#endregion

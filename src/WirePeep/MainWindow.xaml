@@ -5,7 +5,15 @@
 		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 		xmlns:local="clr-namespace:WirePeep"
 		mc:Ignorable="d"
-		Title="WirePeep - Internet Downtime Monitor" Height="450" Width="800">
+		Title="WirePeep - Network Downtime Monitor" Height="450" Width="800"
+		TextOptions.TextFormattingMode="Display">
+	<Window.CommandBindings>
+		<CommandBinding Command="local:Commands.AddLocation" Executed="AddLocationExecuted" />
+		<CommandBinding Command="local:Commands.Exit" Executed="ExitExecuted" />
+		<CommandBinding Command="local:Commands.ExportLog" Executed="ExportLogExecuted" />
+		<CommandBinding Command="local:Commands.ViewOptions" Executed="ViewOptionsExecuted" />
+		<CommandBinding Command="Help" Executed="HelpExecuted" />
+	</Window.CommandBindings>
 	<Grid>
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto"/>
@@ -15,26 +23,27 @@
 		</Grid.RowDefinitions>
 		<Menu Grid.Row="0">
 			<MenuItem Header="_View">
-				<MenuItem Header="_Add Location..." Click="AddLocation_Click"/>
-				<MenuItem Header="_Export Log..." Click="ExportLog_Click"/>
+				<MenuItem Header="_Add Location..." Command="local:Commands.AddLocation"/>
+				<MenuItem Header="_Export Log..." Command="local:Commands.ExportLog"/>
 				<Separator/>
-				<MenuItem Header="_Options" Click="ViewOptions_Click"/>
+				<MenuItem Header="_Options" Command="local:Commands.ViewOptions"/>
 				<Separator/>
-				<MenuItem Header="E_xit" Click="Exit_Click"/>
+				<MenuItem Header="E_xit" Command="local:Commands.Exit"/>
 			</MenuItem>
 			<MenuItem Header="_Help">
-				<MenuItem Header="www.Wire_Peep.com" Click="Help_Click" AutomationProperties.AcceleratorKey="F1"/>
+				<MenuItem Header="www.Wire_Peep.com" Command="Help"/>
 			</MenuItem>
 		</Menu>
 		<DataGrid IsReadOnly="True" Grid.Row="1">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Peer Group"/>
-                <DataGridTextColumn Header="Name"/>
+				<DataGridCheckBoxColumn Header="Poll"/>
+				<DataGridTextColumn Header="Peer Group"/>
+				<DataGridTextColumn Header="Name"/>
 				<DataGridTextColumn Header="IP Address"/>
 				<DataGridTextColumn Header="Status"/>
-				<DataGridTextColumn Header="Response (ms)"/>
-				<DataGridTextColumn Header="Poll (ms)"/>
-				<DataGridTextColumn Header="Wait (ms)"/>
+				<DataGridTextColumn Header="Response Time"/>
+				<DataGridTextColumn Header="Poll Time"/>
+				<DataGridTextColumn Header="Wait Time"/>
 			</DataGrid.Columns>
         </DataGrid>
 
