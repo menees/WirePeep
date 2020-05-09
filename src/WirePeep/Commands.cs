@@ -15,13 +15,15 @@ namespace WirePeep
 
 		public static readonly RoutedUICommand AddLocation = new RoutedUICommand("Add Location", nameof(AddLocation), typeof(Commands));
 
+		public static readonly RoutedUICommand ViewOptions = new RoutedUICommand("View Options", nameof(ViewOptions), typeof(Commands));
+
+		public static readonly RoutedUICommand About = new RoutedUICommand(nameof(About), nameof(About), typeof(Commands));
+
 		public static readonly RoutedUICommand ExportLog = new RoutedUICommand(
 			"Export Log",
 			nameof(ExportLog),
 			typeof(Commands),
 			new InputGestureCollection { new KeyGesture(Key.S, ModifierKeys.Control), });
-
-		public static readonly RoutedUICommand ViewOptions = new RoutedUICommand("View Options", nameof(ViewOptions), typeof(Commands));
 
 		public static readonly RoutedUICommand Exit = new RoutedUICommand(
 			nameof(Exit),

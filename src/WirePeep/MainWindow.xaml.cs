@@ -22,12 +22,13 @@ using Menees.Windows.Presentation;
 
 namespace WirePeep
 {
-	public partial class MainWindow : Window
+	public partial class MainWindow : ExtendedWindow
 	{
 		#region Private Data Members
 
 		private readonly WindowSaver saver;
-		private Profile configuration;
+		private Options options;
+		private Profile profile;
 
 		#endregion
 
@@ -49,13 +50,15 @@ namespace WirePeep
 		private void Saver_LoadSettings(object sender, SettingsEventArgs e)
 		{
 			var settings = e.SettingsNode;
-			this.configuration = new Profile(settings.GetSubNode(nameof(Profile), false));
+			this.options = new Options(settings.GetSubNode(nameof(Options), false));
+			this.profile = new Profile(settings.GetSubNode(nameof(Profile), false));
 		}
 
 		private void Saver_SaveSettings(object sender, SettingsEventArgs e)
 		{
 			var settings = e.SettingsNode;
-			this.configuration.Save(settings.GetSubNode(nameof(Profile), true));
+			this.profile.Save(settings.GetSubNode(nameof(Profile), true));
+			this.options.Save(settings.GetSubNode(nameof(Options), true));
 		}
 
 		private void ExitExecuted(object sender, ExecutedRoutedEventArgs e)
@@ -65,9 +68,13 @@ namespace WirePeep
 
 		private void ViewOptionsExecuted(object sender, ExecutedRoutedEventArgs e)
 		{
-			// TODO: Finish ViewOptionsExecuted. [Bill, 5/7/2020]
-			MessageBox.Show(nameof(this.ViewOptionsExecuted));
-			this.saver.Save();
+			OptionsDialog dialog = new OptionsDialog();
+			if (dialog.Execute(this, this.options))
+			{
+				// TODO: Finish ViewOptionsExecuted. [Bill, 5/7/2020]
+				MessageBox.Show(nameof(this.ViewOptionsExecuted));
+				this.saver.Save();
+			}
 		}
 
 		private void HelpExecuted(object sender, ExecutedRoutedEventArgs e)
@@ -85,6 +92,11 @@ namespace WirePeep
 		{
 			// TODO: Finish ExportLogExecuted. [Bill, 5/7/2020]
 			MessageBox.Show(nameof(this.ExportLogExecuted));
+		}
+
+		private void AboutExecuted(object sender, ExecutedRoutedEventArgs e)
+		{
+			WindowsUtility.ShowAboutBox(this, typeof(MainWindow).Assembly);
 		}
 
 		#endregion
