@@ -39,5 +39,11 @@ namespace WirePeep
 		public IPAddress Address { get; }
 
 		#endregion
+
+		#region Public Methods
+
+		public override string ToString() => $"{this.Name} - {this.Address}";
+
+		#endregion
 	}
 }

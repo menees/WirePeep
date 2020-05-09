@@ -57,8 +57,8 @@ namespace WirePeep
 		private void Saver_SaveSettings(object sender, SettingsEventArgs e)
 		{
 			var settings = e.SettingsNode;
-			this.profile.Save(settings.GetSubNode(nameof(Profile), true));
-			this.options.Save(settings.GetSubNode(nameof(Options), true));
+			this.profile?.Save(settings.GetSubNode(nameof(Profile), true));
+			this.options?.Save(settings.GetSubNode(nameof(Options), true));
 		}
 
 		private void ExitExecuted(object sender, ExecutedRoutedEventArgs e)

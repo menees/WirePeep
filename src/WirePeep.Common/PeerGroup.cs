@@ -44,5 +44,11 @@ namespace WirePeep
 		public TimeSpan Wait { get; }
 
 		#endregion
+
+		#region Public Methods
+
+		public override string ToString() => this.Name;
+
+		#endregion
 	}
 }

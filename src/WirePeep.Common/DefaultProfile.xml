@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Defaults>
-	<PeerGroup Name="DNS" FailSeconds="10" PollSeconds="5" WaitMilliseconds="200">
+	<PeerGroup Name="Internet" FailSeconds="10" PollSeconds="5" WaitMilliseconds="200">
 		<!-- Compare at https://www.dnsperf.com/. -->
 		<Location Name="Google">
 			<Address>8.8.8.8</Address>
@@ -35,12 +35,14 @@
 		</Location>
 	</PeerGroup>
 
-	<PeerGroup Name="Default Gateway" FailSeconds="4" PollSeconds="2" WaitMilliseconds="50">
-		<Find Type="DefaultGateway"/>
+	<!-- The router and modem are in separate groups because they're not equivalent "peers".
+	Losing connectivity to either one is bad. -->
+	<PeerGroup Name="Local Router" FailSeconds="4" PollSeconds="2" WaitMilliseconds="50">
+		<Find Name="Default Gateway" Type="DefaultGateway"/>
 	</PeerGroup>
 
-	<PeerGroup Name="Cable Modem" FailSeconds="4" PollSeconds="2" WaitMilliseconds="50">
-		<Find Type="CableModem">
+	<PeerGroup Name="Local Modem" FailSeconds="4" PollSeconds="2" WaitMilliseconds="50">
+		<Find Name="Cable Modem" Type="CableModem">
 			<Address>192.168.100.1</Address>
 			<Address>10.0.0.1</Address>
 			<Address>10.1.0.1</Address>
