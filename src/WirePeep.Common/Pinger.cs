@@ -3,25 +3,50 @@
 using System;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Text;
 using Menees;
 
 #endregion
 
 namespace WirePeep
 {
-	public sealed class Pinger
+	public sealed class Pinger : IDisposable
 	{
-		// TODO: Use https://docs.microsoft.com/en-us/dotnet/api/system.net.networkinformation.ping?view=netcore-3.1. [Bill, 5/6/2020]
+		#region Private Data Members
+
+		private static readonly byte[] BufferContent = Encoding.ASCII.GetBytes($"Ping testing from {nameof(WirePeep)}...");
+
+		private readonly Ping ping;
+		private readonly int waitMilliseconds;
+		private readonly PingOptions options;
+
+		#endregion
+
+		#region Constructors
+
+		public Pinger(TimeSpan wait)
+		{
+			this.ping = new Ping();
+			this.waitMilliseconds = (int)(wait.Ticks / TimeSpan.TicksPerMillisecond);
+		}
+
+		private Pinger(TimeSpan wait, int ttl)
+			: this(wait)
+		{
+			this.options = new PingOptions { Ttl = ttl };
+		}
+
+		#endregion
+
 		#region Public Methods
 
-		public static IPAddress GetAddressAtTtl(IPAddress searchAddress, int ttl, int waitMilliseconds)
+		public static IPAddress GetAddressAtTtl(IPAddress searchAddress, int ttl, TimeSpan wait)
 		{
 			IPAddress result = null;
 
-			using (Ping ping = new Ping())
+			using (Pinger pinger = new Pinger(wait, ttl))
 			{
-				PingOptions options = new PingOptions { Ttl = ttl };
-				PingReply reply = Send(ping, searchAddress, waitMilliseconds, options);
+				PingReply reply = pinger.Send(searchAddress);
 				if (reply.Status == IPStatus.Success || reply.Status == IPStatus.TtlExpired)
 				{
 					result = reply.Address;
@@ -31,24 +56,33 @@ namespace WirePeep
 			return result;
 		}
 
-		public static bool CanPing(IPAddress address, int waitMilliseconds)
+		public bool CanPing(IPAddress address)
 		{
-			using (Ping ping = new Ping())
-			{
-				PingReply reply = Send(ping, address, waitMilliseconds);
-				bool result = reply.Status == IPStatus.Success;
-				return result;
-			}
+			PingReply reply = this.Send(address);
+			bool result = reply.Status == IPStatus.Success;
+			return result;
+		}
+
+		public bool TryPing(IPAddress address, out TimeSpan roundtripTime)
+		{
+			PingReply reply = this.Send(address);
+			roundtripTime = TimeSpan.FromMilliseconds(reply.RoundtripTime);
+			bool result = reply.Status == IPStatus.Success;
+			return result;
+		}
+
+		public void Dispose()
+		{
+			this.ping.Dispose();
 		}
 
 		#endregion
 
 		#region Private Methods
 
-		private static PingReply Send(Ping ping, IPAddress address, int waitMilliseconds, PingOptions options = null)
+		private PingReply Send(IPAddress address)
 		{
-			ping.Send(address);
-			PingReply result = ping.Send(address, waitMilliseconds, CollectionUtility.EmptyArray<byte>(), options);
+			PingReply result = this.ping.Send(address, this.waitMilliseconds, BufferContent, this.options);
 			return result;
 		}
 

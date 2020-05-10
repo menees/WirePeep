@@ -54,21 +54,6 @@ namespace WirePeep
 
 		#region Private Methods
 
-		private static IPAddress FindDefaultGateway()
-		{
-			// The first IP address returned by a traceroute should be the gateway. https://stackoverflow.com/a/29494180/1882616
-			// We'll simulate that by doing a ping with TTL = 1. https://stackoverflow.com/a/45565253/1882616
-			const int WaitMilliseconds = 50;
-			IPAddress result = Pinger.GetAddressAtTtl(IPAddress.Parse("8.8.8.8"), 1, WaitMilliseconds);
-			return result;
-		}
-
-		private static IPAddress FindCableModem(IEnumerable<IPAddress> addresses)
-		{
-			// TODO: Finish FindCableModem. [Bill, 5/9/2020]
-			return null;
-		}
-
 		private void LoadDefaults()
 		{
 			void AddLocation(Location location)
@@ -121,12 +106,26 @@ namespace WirePeep
 				{
 					string findName = findElement.GetAttributeValue("Name");
 					string findType = findElement.GetAttributeValue("Type");
-					IPAddress address = findType switch
+					IPAddress address;
+					switch (findType)
 					{
-						"DefaultGateway" => FindDefaultGateway(),
-						"CableModem" => FindCableModem(findElement.Elements("Address").Select(e => IPAddress.Parse(e.Value))),
-						_ => null,
-					};
+						case "DefaultGateway":
+							// The first IP address returned by a traceroute should be the gateway. https://stackoverflow.com/a/29494180/1882616
+							// We'll simulate that by doing a ping with TTL = 1. https://stackoverflow.com/a/45565253/1882616
+							address = Pinger.GetAddressAtTtl(IPAddress.Parse("8.8.8.8"), 1, group.Wait);
+							break;
+
+						case "CableModem":
+							using (Pinger pinger = new Pinger(group.Wait))
+							{
+								address = findElement.Elements("Address").Select(e => IPAddress.Parse(e.Value)).FirstOrDefault(a => pinger.CanPing(a));
+							}
+
+							break;
+
+						default:
+							throw Exceptions.NewInvalidOperationException($"Unsupported Find Type: {findType}");
+					}
 
 					if (address != null)
 					{

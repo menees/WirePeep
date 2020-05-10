@@ -1,8 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-		<!-- TODO: Add net45 in later. [Bill, 5/7/2020] -->
-		<TargetFrameworks>netcoreapp3.1</TargetFrameworks>
+		<TargetFrameworks>netcoreapp3.1;net45</TargetFrameworks>
     <RootNamespace>WirePeep</RootNamespace>
   </PropertyGroup>
 

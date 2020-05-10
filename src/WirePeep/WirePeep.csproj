@@ -2,8 +2,7 @@
 
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
-		<!-- TODO: Add net45 in later. [Bill, 5/7/2020] -->
-		<TargetFrameworks>netcoreapp3.1</TargetFrameworks>
+		<TargetFrameworks>netcoreapp3.1;net45</TargetFrameworks>
 		<UseWPF>true</UseWPF>
 		<Description>Free, open-source network downtime monitor</Description>
 	</PropertyGroup>
