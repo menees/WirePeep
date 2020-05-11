@@ -32,11 +32,11 @@
 				<MenuItem Header="E_xit" Command="local:Commands.Exit"/>
 			</MenuItem>
 			<MenuItem Header="_Help">
-				<MenuItem Header="www.Wire_Peep.com" Command="Help"/>
+				<MenuItem Header="_WirePeep.com" Command="Help"/>
 				<MenuItem Header="_About..." Command="local:Commands.About"/>
 			</MenuItem>
 		</Menu>
-		<DataGrid IsReadOnly="True" Grid.Row="1">
+		<DataGrid IsReadOnly="True" Grid.Row="1" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" CanUserReorderColumns="False" CanUserSortColumns="False" GridLinesVisibility="None">
             <DataGrid.Columns>
 				<DataGridCheckBoxColumn Header="Poll"/>
 				<DataGridTextColumn Header="Peer Group"/>
@@ -49,7 +49,7 @@
 			</DataGrid.Columns>
         </DataGrid>
 
-		<DataGrid IsReadOnly="True" Grid.Row="2">
+		<DataGrid IsReadOnly="True" Grid.Row="2" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" CanUserSortColumns="False" CanUserReorderColumns="False" GridLinesVisibility="None">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Peer Group"/>
 				<DataGridTextColumn Header="Start"/>

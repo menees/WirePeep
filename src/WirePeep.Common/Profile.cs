@@ -48,6 +48,8 @@ namespace WirePeep
 		public void Save(ISettingsNode settingsNode)
 		{
 			// TODO: Save configuration. [Bill, 5/7/2020]
+			this.GetHashCode();
+			settingsNode.GetHashCode();
 		}
 
 		#endregion
@@ -139,6 +141,8 @@ namespace WirePeep
 		private void Load(ISettingsNode settingsNode)
 		{
 			// TODO: Load configuration. [Bill, 5/7/2020]
+			this.GetHashCode();
+			settingsNode.GetHashCode();
 		}
 
 		#endregion

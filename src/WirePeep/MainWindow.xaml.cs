@@ -15,7 +15,6 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Menees;
-using Menees.Shell;
 using Menees.Windows.Presentation;
 
 #endregion
@@ -39,22 +38,22 @@ namespace WirePeep
 			this.InitializeComponent();
 
 			this.saver = new WindowSaver(this);
-			this.saver.LoadSettings += this.Saver_LoadSettings;
-			this.saver.SaveSettings += this.Saver_SaveSettings;
+			this.saver.LoadSettings += this.SaverLoadSettings;
+			this.saver.SaveSettings += this.SaverSaveSettings;
 		}
 
 		#endregion
 
 		#region Private Event Handlers
 
-		private void Saver_LoadSettings(object sender, SettingsEventArgs e)
+		private void SaverLoadSettings(object sender, SettingsEventArgs e)
 		{
 			var settings = e.SettingsNode;
 			this.options = new Options(settings.GetSubNode(nameof(Options), false));
 			this.profile = new Profile(settings.GetSubNode(nameof(Profile), false));
 		}
 
-		private void Saver_SaveSettings(object sender, SettingsEventArgs e)
+		private void SaverSaveSettings(object sender, SettingsEventArgs e)
 		{
 			var settings = e.SettingsNode;
 			this.profile?.Save(settings.GetSubNode(nameof(Profile), true));
@@ -72,7 +71,6 @@ namespace WirePeep
 			if (dialog.Execute(this, this.options))
 			{
 				// TODO: Finish ViewOptionsExecuted. [Bill, 5/7/2020]
-				MessageBox.Show(nameof(this.ViewOptionsExecuted));
 				this.saver.Save();
 			}
 		}
@@ -86,12 +84,14 @@ namespace WirePeep
 		{
 			// TODO: Finish AddLocationExecuted. [Bill, 5/7/2020]
 			MessageBox.Show(nameof(this.AddLocationExecuted));
+			this.GetHashCode();
 		}
 
 		private void ExportLogExecuted(object sender, ExecutedRoutedEventArgs e)
 		{
 			// TODO: Finish ExportLogExecuted. [Bill, 5/7/2020]
 			MessageBox.Show(nameof(this.ExportLogExecuted));
+			this.GetHashCode();
 		}
 
 		private void AboutExecuted(object sender, ExecutedRoutedEventArgs e)
