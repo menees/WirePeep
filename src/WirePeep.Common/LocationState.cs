@@ -63,6 +63,8 @@ namespace WirePeep
 			return result;
 		}
 
+		public LocationState ShallowCopy() => (LocationState)this.MemberwiseClone();
+
 		#endregion
 	}
 }

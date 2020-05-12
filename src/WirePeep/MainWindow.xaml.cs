@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -28,6 +29,9 @@ namespace WirePeep
 		private readonly WindowSaver saver;
 		private Options options;
 		private Profile profile;
+		private StateManager stateManager;
+		private Timer backgroundTimer;
+		private int updatingLock;
 
 		#endregion
 
@@ -44,6 +48,17 @@ namespace WirePeep
 
 		#endregion
 
+		#region Private Methods
+
+		private void UpdateStates(IDictionary<PeerGroupState, IReadOnlyList<LocationState>> states)
+		{
+			// TODO: Finish UpdateStates. [Bill, 5/11/2020]
+			states.GetHashCode();
+			this.GetHashCode();
+		}
+
+		#endregion
+
 		#region Private Event Handlers
 
 		private void SaverLoadSettings(object sender, SettingsEventArgs e)
@@ -51,10 +66,15 @@ namespace WirePeep
 			var settings = e.SettingsNode;
 			this.options = new Options(settings.GetSubNode(nameof(Options), false));
 			this.profile = new Profile(settings.GetSubNode(nameof(Profile), false));
+
+			this.stateManager = new StateManager(this.profile);
+			this.backgroundTimer = new Timer(this.BackgroundTimerCallback, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
 		}
 
 		private void SaverSaveSettings(object sender, SettingsEventArgs e)
 		{
+			this.backgroundTimer.Dispose();
+
 			var settings = e.SettingsNode;
 			this.profile?.Save(settings.GetSubNode(nameof(Profile), true));
 			this.options?.Save(settings.GetSubNode(nameof(Options), true));
@@ -97,6 +117,23 @@ namespace WirePeep
 		private void AboutExecuted(object sender, ExecutedRoutedEventArgs e)
 		{
 			WindowsUtility.ShowAboutBox(this, typeof(MainWindow).Assembly);
+		}
+
+		private void BackgroundTimerCallback(object state)
+		{
+			// Only let one Update run at a time. If the callback takes longer than 1 second, it will be invoked again from another thread.
+			if (Interlocked.CompareExchange(ref this.updatingLock, 1, 0) == 0)
+			{
+				try
+				{
+					Dictionary<PeerGroupState, IReadOnlyList<LocationState>> states = this.stateManager.Update();
+					this.Dispatcher.BeginInvoke(new Action(() => this.UpdateStates(states)));
+				}
+				finally
+				{
+					Interlocked.Exchange(ref this.updatingLock, 0);
+				}
+			}
 		}
 
 		#endregion

@@ -47,7 +47,7 @@ namespace WirePeep
 
 		#region Public Methods
 
-		public List<PeerGroupState> Update()
+		public Dictionary<PeerGroupState, IReadOnlyList<LocationState>> Update()
 		{
 			Dictionary<PeerGroupState, List<LocationState>> mapCopy;
 			lock (this.mapLock)
@@ -55,20 +55,22 @@ namespace WirePeep
 				mapCopy = new Dictionary<PeerGroupState, List<LocationState>>(this.peerGroupToLocationsMap);
 			}
 
-			List<PeerGroupState> changed = new List<PeerGroupState>(mapCopy.Keys.Count);
 			ParallelOptions options = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount / 2 };
-			Parallel.ForEach(mapCopy, options, pair =>
-			{
-				if (pair.Key.Update(pair.Value))
-				{
-					lock (changed)
-					{
-						changed.Add(pair.Key);
-					}
-				}
-			});
+			Parallel.ForEach(mapCopy, options, pair => pair.Key.Update(pair.Value));
 
-			return changed;
+			var result = new Dictionary<PeerGroupState, IReadOnlyList<LocationState>>(mapCopy.Count);
+			foreach (var pair in mapCopy)
+			{
+				PeerGroupState privatePeerGroup = pair.Key;
+				PeerGroupState publicPeerGroup = privatePeerGroup.ShallowCopy();
+
+				List<LocationState> privateLocations = pair.Value;
+				List<LocationState> publicLocations = privateLocations.Select(l => l.ShallowCopy()).ToList();
+
+				result.Add(publicPeerGroup, publicLocations);
+			}
+
+			return result;
 		}
 
 		#endregion

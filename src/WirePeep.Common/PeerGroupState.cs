@@ -12,12 +12,6 @@ namespace WirePeep
 {
 	public sealed class PeerGroupState
 	{
-		#region Private Data Members
-
-		private long counter;
-
-		#endregion
-
 		#region Constructors
 
 		public PeerGroupState(PeerGroup peerGroup)
@@ -33,6 +27,10 @@ namespace WirePeep
 
 		public bool IsConnected { get; private set; }
 
+		public long UpdateCounter { get; private set; }
+
+		public DateTime? IsConnectedChanged { get; private set; }
+
 		#endregion
 
 		#region Public Methods
@@ -41,7 +39,7 @@ namespace WirePeep
 		{
 			// Increment this each time so we can uniquely identify which Update call last
 			// updated an item and so we'll round-robin through each location in the list.
-			this.counter = unchecked(this.counter + 1);
+			this.UpdateCounter++;
 
 			bool wasConnected = this.IsConnected;
 
@@ -49,9 +47,9 @@ namespace WirePeep
 			int numLocations = locations.Count;
 			for (int i = 0; i < numLocations; i++)
 			{
-				int locationIndex = (int)unchecked((this.counter + i) % numLocations);
+				int locationIndex = (int)unchecked((this.UpdateCounter + i) % numLocations);
 				LocationState locationState = locations[locationIndex];
-				bool? isLocationConnected = locationState.Update(this.counter);
+				bool? isLocationConnected = locationState.Update(this.UpdateCounter);
 
 				// A null result means we've polled it too recently.
 				if (isLocationConnected != null)
@@ -71,8 +69,15 @@ namespace WirePeep
 			}
 
 			bool result = this.IsConnected != wasConnected;
+			if (result)
+			{
+				this.IsConnectedChanged = DateTime.UtcNow;
+			}
+
 			return result;
 		}
+
+		public PeerGroupState ShallowCopy() => (PeerGroupState)this.MemberwiseClone();
 
 		#endregion
 	}
