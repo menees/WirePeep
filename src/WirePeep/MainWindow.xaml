@@ -22,7 +22,17 @@
 					<ControlTemplate TargetType="{x:Type GroupItem}">
 						<Expander x:Name="exp" IsExpanded="True">
 							<Expander.Header>
-								<TextBlock Text="{Binding Name}"/>
+								<DockPanel>
+									<!-- The DataContext here is a CollectionViewGroup (based on the PropertyGroupDescription.) -->
+									<CheckBox IsChecked="{Binding Items[0].IsGroupFailed}"/>
+									<TextBlock Text="{Binding Name}"/>
+									<TextBlock Text=" Poll: "/>
+									<TextBlock Text="{Binding Items[0].GroupPoll}"/>
+									<TextBlock Text=" Wait: "/>
+									<TextBlock Text="{Binding Items[0].GroupWait}"/>
+									<TextBlock Text=" Fail: "/>
+									<TextBlock Text="{Binding Items[0].GroupFail}"/>
+								</DockPanel>
 							</Expander.Header>
 							<ItemsPresenter />
 						</Expander>
@@ -65,15 +75,11 @@
 			</DataGrid.GroupStyle>
 
 			<DataGrid.Columns>
-				<DataGridCheckBoxColumn Header="Group Failed" Binding="{Binding IsGroupFailed}" />
 				<DataGridTextColumn Header="Name" Binding="{Binding LocationName}"/>
 				<DataGridTextColumn Header="IP Address" Binding="{Binding LocationAddress}"/>
 				<DataGridCheckBoxColumn Header="Status" Binding="{Binding IsLocationConnected}"/>
 				<DataGridCheckBoxColumn Header="Current" Binding="{Binding IsLocationUpToDate}"/>
 				<DataGridTextColumn Header="Response Time" Binding="{Binding LocationRoundtripTime}"/>
-				<DataGridTextColumn Header="Poll Time" Binding="{Binding GroupPoll}"/>
-				<DataGridTextColumn Header="Wait Time" Binding="{Binding GroupWait}"/>
-				<DataGridTextColumn Header="Fail Time" Binding="{Binding GroupFail}"/>
 			</DataGrid.Columns>
         </DataGrid>
 
