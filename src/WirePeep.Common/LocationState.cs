@@ -47,7 +47,7 @@ namespace WirePeep
 			PeerGroup peerGroup = this.Location.PeerGroup;
 			if (utcNow - this.lastPolled > peerGroup.Poll)
 			{
-				bool wasConnected = this.IsConnected ?? false;
+				bool? wasConnected = this.IsConnected;
 
 				using (Pinger pinger = new Pinger(peerGroup.Wait))
 				{

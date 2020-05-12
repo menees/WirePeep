@@ -15,6 +15,22 @@
 		<CommandBinding Command="Help" Executed="HelpExecuted" />
 		<CommandBinding Command="local:Commands.About" Executed="AboutExecuted" />
 	</Window.CommandBindings>
+	<Window.Resources>
+		<Style x:Key="StatusGroupHeaderStyle" TargetType="{x:Type GroupItem}">
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="{x:Type GroupItem}">
+						<Expander x:Name="exp" IsExpanded="True">
+							<Expander.Header>
+								<TextBlock Text="{Binding Name}"/>
+							</Expander.Header>
+							<ItemsPresenter />
+						</Expander>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
+	</Window.Resources>
 	<Grid>
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto"/>
@@ -36,21 +52,32 @@
 				<MenuItem Header="_About..." Command="local:Commands.About"/>
 			</MenuItem>
 		</Menu>
-		<DataGrid x:Name="statusGrid" IsReadOnly="True" Grid.Row="1" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" CanUserReorderColumns="False" CanUserSortColumns="False" GridLinesVisibility="None">
-            <!--
-            <DataGrid.Columns>
-				<DataGridTextColumn Header="Peer Group" Binding="{Binding GroupName}" />
+
+		<DataGrid x:Name="statusGrid" IsReadOnly="True" Grid.Row="1" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" CanUserReorderColumns="False" CanUserSortColumns="False" GridLinesVisibility="None" AutoGenerateColumns="False" CanUserResizeRows="False">
+			<DataGrid.GroupStyle>
+				<GroupStyle ContainerStyle="{StaticResource StatusGroupHeaderStyle}">
+					<GroupStyle.Panel>
+						<ItemsPanelTemplate>
+							<DataGridRowsPresenter/>
+						</ItemsPanelTemplate>
+					</GroupStyle.Panel>
+				</GroupStyle>
+			</DataGrid.GroupStyle>
+
+			<DataGrid.Columns>
+				<DataGridCheckBoxColumn Header="Group Failed" Binding="{Binding IsGroupFailed}" />
 				<DataGridTextColumn Header="Name" Binding="{Binding LocationName}"/>
-				<DataGridTextColumn Header="IP Address"/>
-				<DataGridTextColumn Header="Status"/>
-				<DataGridTextColumn Header="Response Time"/>
-				<DataGridTextColumn Header="Poll Time"/>
-				<DataGridTextColumn Header="Wait Time"/>
+				<DataGridTextColumn Header="IP Address" Binding="{Binding LocationAddress}"/>
+				<DataGridCheckBoxColumn Header="Status" Binding="{Binding IsLocationConnected}"/>
+				<DataGridCheckBoxColumn Header="Current" Binding="{Binding IsLocationUpToDate}"/>
+				<DataGridTextColumn Header="Response Time" Binding="{Binding LocationRoundtripTime}"/>
+				<DataGridTextColumn Header="Poll Time" Binding="{Binding GroupPoll}"/>
+				<DataGridTextColumn Header="Wait Time" Binding="{Binding GroupWait}"/>
+				<DataGridTextColumn Header="Fail Time" Binding="{Binding GroupFail}"/>
 			</DataGrid.Columns>
-            -->
         </DataGrid>
 
-		<DataGrid x:Name="logGrid" IsReadOnly="True" Grid.Row="2" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" CanUserSortColumns="False" CanUserReorderColumns="False" GridLinesVisibility="None">
+		<DataGrid x:Name="logGrid" IsReadOnly="True" Grid.Row="2" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" CanUserSortColumns="False" CanUserReorderColumns="False" GridLinesVisibility="None" AutoGenerateColumns="False" CanUserResizeRows="False">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Peer Group"/>
 				<DataGridTextColumn Header="Start"/>

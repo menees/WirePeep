@@ -75,7 +75,7 @@ namespace WirePeep
 
 			Location location = locationState.Location;
 			this.LocationName = location.Name;
-			this.locationAddress = location.Address;
+			this.LocationAddress = location.Address;
 			this.IsLocationConnected = locationState.IsConnected;
 			this.LocationRoundtripTime = locationState.RoundtripTime;
 			this.IsLocationUpToDate = locationState.UpdateCounter == peerGroupState.UpdateCounter;

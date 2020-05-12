@@ -48,7 +48,11 @@ namespace WirePeep
 
 			this.statusRows = new ObservableCollection<StatusRow>();
 			this.rowMap = new Dictionary<string, StatusRow>();
-			this.statusGrid.ItemsSource = this.statusRows;
+
+			// Grouping example came from https://www.c-sharpcorner.com/uploadfile/dpatra/grouping-in-datagrid-in-wpf/.
+			ListCollectionView collectionView = new ListCollectionView(this.statusRows);
+			collectionView.GroupDescriptions.Add(new PropertyGroupDescription(nameof(StatusRow.GroupName)));
+			this.statusGrid.ItemsSource = collectionView;
 
 			this.saver = new WindowSaver(this);
 			this.saver.LoadSettings += this.SaverLoadSettings;
