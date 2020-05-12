@@ -31,6 +31,8 @@ namespace WirePeep
 
 		public DateTime? IsConnectedChanged { get; private set; }
 
+		public bool IsFailed { get; private set; }
+
 		#endregion
 
 		#region Public Methods
@@ -49,13 +51,13 @@ namespace WirePeep
 			{
 				int locationIndex = (int)unchecked((this.UpdateCounter + i) % numLocations);
 				LocationState locationState = locations[locationIndex];
-				bool? isLocationConnected = locationState.Update(this.UpdateCounter);
+				bool? wasLocationUpdated = locationState.Update(this.UpdateCounter);
 
 				// A null result means we've polled it too recently.
-				if (isLocationConnected != null)
+				if (wasLocationUpdated != null)
 				{
 					// If we get a connected result, then we can quit early.
-					isPeerGroupConnected = isLocationConnected.Value;
+					isPeerGroupConnected = locationState.IsConnected;
 					if (isPeerGroupConnected ?? false)
 					{
 						break;
@@ -72,6 +74,15 @@ namespace WirePeep
 			if (result)
 			{
 				this.IsConnectedChanged = DateTime.UtcNow;
+			}
+
+			if (this.IsConnected)
+			{
+				this.IsFailed = false;
+			}
+			else if (!this.IsFailed && (this.IsConnectedChanged == null || DateTime.UtcNow >= (this.IsConnectedChanged.Value + this.PeerGroup.Fail)))
+			{
+				this.IsFailed = true;
 			}
 
 			return result;

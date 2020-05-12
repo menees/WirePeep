@@ -29,7 +29,7 @@ namespace WirePeep
 
 		public Location Location { get; }
 
-		public bool IsConnected { get; private set; }
+		public bool? IsConnected { get; private set; }
 
 		public TimeSpan RoundtripTime { get; private set; }
 
@@ -47,7 +47,7 @@ namespace WirePeep
 			PeerGroup peerGroup = this.Location.PeerGroup;
 			if (utcNow - this.lastPolled > peerGroup.Poll)
 			{
-				bool wasConnected = this.IsConnected;
+				bool wasConnected = this.IsConnected ?? false;
 
 				using (Pinger pinger = new Pinger(peerGroup.Wait))
 				{

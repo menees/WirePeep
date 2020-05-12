@@ -36,20 +36,21 @@
 				<MenuItem Header="_About..." Command="local:Commands.About"/>
 			</MenuItem>
 		</Menu>
-		<DataGrid IsReadOnly="True" Grid.Row="1" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" CanUserReorderColumns="False" CanUserSortColumns="False" GridLinesVisibility="None">
+		<DataGrid x:Name="statusGrid" IsReadOnly="True" Grid.Row="1" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" CanUserReorderColumns="False" CanUserSortColumns="False" GridLinesVisibility="None">
+            <!--
             <DataGrid.Columns>
-				<DataGridCheckBoxColumn Header="Poll"/>
-				<DataGridTextColumn Header="Peer Group"/>
-				<DataGridTextColumn Header="Name"/>
+				<DataGridTextColumn Header="Peer Group" Binding="{Binding GroupName}" />
+				<DataGridTextColumn Header="Name" Binding="{Binding LocationName}"/>
 				<DataGridTextColumn Header="IP Address"/>
 				<DataGridTextColumn Header="Status"/>
 				<DataGridTextColumn Header="Response Time"/>
 				<DataGridTextColumn Header="Poll Time"/>
 				<DataGridTextColumn Header="Wait Time"/>
 			</DataGrid.Columns>
+            -->
         </DataGrid>
 
-		<DataGrid IsReadOnly="True" Grid.Row="2" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" CanUserSortColumns="False" CanUserReorderColumns="False" GridLinesVisibility="None">
+		<DataGrid x:Name="logGrid" IsReadOnly="True" Grid.Row="2" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" CanUserSortColumns="False" CanUserReorderColumns="False" GridLinesVisibility="None">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Peer Group"/>
 				<DataGridTextColumn Header="Start"/>
@@ -58,7 +59,6 @@
 				<DataGridTextColumn Header="Since Previous"/>
 				<DataGridTextColumn Header="Comment"/>
 			</DataGrid.Columns>
-
         </DataGrid>
 
 		<StatusBar Grid.Row="3">

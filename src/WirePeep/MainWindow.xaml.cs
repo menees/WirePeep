@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -22,7 +24,7 @@ using Menees.Windows.Presentation;
 
 namespace WirePeep
 {
-	public partial class MainWindow : ExtendedWindow
+	public sealed partial class MainWindow : ExtendedWindow, IDisposable
 	{
 		#region Private Data Members
 
@@ -32,6 +34,9 @@ namespace WirePeep
 		private StateManager stateManager;
 		private Timer backgroundTimer;
 		private int updatingLock;
+		private int closing;
+		private ObservableCollection<StatusRow> statusRows;
+		private Dictionary<string, StatusRow> rowMap;
 
 		#endregion
 
@@ -41,9 +46,22 @@ namespace WirePeep
 		{
 			this.InitializeComponent();
 
+			this.statusRows = new ObservableCollection<StatusRow>();
+			this.rowMap = new Dictionary<string, StatusRow>();
+			this.statusGrid.ItemsSource = this.statusRows;
+
 			this.saver = new WindowSaver(this);
 			this.saver.LoadSettings += this.SaverLoadSettings;
 			this.saver.SaveSettings += this.SaverSaveSettings;
+		}
+
+		#endregion
+
+		#region Public Methods
+
+		public void Dispose()
+		{
+			this.backgroundTimer.Dispose();
 		}
 
 		#endregion
@@ -52,9 +70,34 @@ namespace WirePeep
 
 		private void UpdateStates(IDictionary<PeerGroupState, IReadOnlyList<LocationState>> states)
 		{
-			// TODO: Finish UpdateStates. [Bill, 5/11/2020]
-			states.GetHashCode();
-			this.GetHashCode();
+			var newRowMap = new Dictionary<string, StatusRow>(this.rowMap.Count);
+			foreach (var pair in states)
+			{
+				PeerGroupState peerGroupState = pair.Key;
+				foreach (LocationState locationState in pair.Value)
+				{
+					string key = $"{peerGroupState.PeerGroup.Name}\0\0{locationState.Location.Name}";
+					if (this.rowMap.TryGetValue(key, out StatusRow row))
+					{
+						row.Update(peerGroupState, locationState);
+					}
+					else
+					{
+						row = new StatusRow();
+						row.Update(peerGroupState, locationState);
+						this.statusRows.Add(row);
+					}
+
+					newRowMap.Add(key, row);
+				}
+			}
+
+			foreach (var pair in this.rowMap.Where(pair => !newRowMap.ContainsKey(pair.Key)))
+			{
+				this.statusRows.Remove(pair.Value);
+			}
+
+			this.rowMap = newRowMap;
 		}
 
 		#endregion
@@ -73,6 +116,7 @@ namespace WirePeep
 
 		private void SaverSaveSettings(object sender, SettingsEventArgs e)
 		{
+			Interlocked.Increment(ref this.closing);
 			this.backgroundTimer.Dispose();
 
 			var settings = e.SettingsNode;
@@ -122,7 +166,7 @@ namespace WirePeep
 		private void BackgroundTimerCallback(object state)
 		{
 			// Only let one Update run at a time. If the callback takes longer than 1 second, it will be invoked again from another thread.
-			if (Interlocked.CompareExchange(ref this.updatingLock, 1, 0) == 0)
+			if (this.closing == 0 && Interlocked.CompareExchange(ref this.updatingLock, 1, 0) == 0)
 			{
 				try
 				{
