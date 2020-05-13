@@ -19,11 +19,13 @@
 
 	<Window.Resources>
 		<local:StatusRowCollection x:Key="StatusRows"/>
+
 		<CollectionViewSource x:Key="StatusRowsView" Source="{StaticResource StatusRows}">
 			<CollectionViewSource.GroupDescriptions>
 				<PropertyGroupDescription PropertyName="GroupName"/>
 			</CollectionViewSource.GroupDescriptions>
 		</CollectionViewSource>
+
 		<Style x:Key="StatusGroupHeaderStyle" TargetType="{x:Type GroupItem}">
 			<Setter Property="Template">
 				<Setter.Value>
@@ -47,6 +49,11 @@
 					</ControlTemplate>
 				</Setter.Value>
 			</Setter>
+		</Style>
+
+		<Style TargetType="{x:Type TextBlock}" x:Key="RightAlignCell">
+			<Setter Property="HorizontalAlignment" Value="Stretch"/>
+			<Setter Property="TextAlignment" Value="Right"/>
 		</Style>
 	</Window.Resources>
 
@@ -91,7 +98,7 @@
 				<DataGridTextColumn Header="IP Address" Binding="{Binding LocationAddress}"/>
 				<DataGridCheckBoxColumn Header="Status" Binding="{Binding IsLocationConnected}"/>
 				<DataGridCheckBoxColumn Header="Current" Binding="{Binding IsLocationUpToDate}"/>
-				<DataGridTextColumn Header="Response Time" Binding="{Binding LocationRoundtripTime}"/>
+				<DataGridTextColumn Header="Response (ms)" Binding="{Binding LocationRoundtripMilliseconds}" ElementStyle="{StaticResource RightAlignCell}"/>
 			</DataGrid.Columns>
         </DataGrid>
 

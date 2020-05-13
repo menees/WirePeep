@@ -181,7 +181,7 @@ namespace WirePeep
 			OptionsDialog dialog = new OptionsDialog();
 			if (dialog.Execute(this, this.options))
 			{
-				// TODO: Finish ViewOptionsExecuted. [Bill, 5/7/2020]
+				// TODO: React to any Options that changed (e.g., LogFolder). [Bill, 5/7/2020]
 				this.saver.Save();
 			}
 		}
