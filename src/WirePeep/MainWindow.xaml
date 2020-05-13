@@ -7,6 +7,7 @@
 		xmlns:local="clr-namespace:WirePeep"
 		mc:Ignorable="d"
 		Title="WirePeep - Network Downtime Monitor" Height="450" Width="800">
+
 	<Window.CommandBindings>
 		<CommandBinding Command="local:Commands.AddLocation" Executed="AddLocationExecuted" />
 		<CommandBinding Command="local:Commands.Exit" Executed="ExitExecuted" />
@@ -15,6 +16,7 @@
 		<CommandBinding Command="Help" Executed="HelpExecuted" />
 		<CommandBinding Command="local:Commands.About" Executed="AboutExecuted" />
 	</Window.CommandBindings>
+
 	<Window.Resources>
 		<local:StatusRowCollection x:Key="StatusRows"/>
 		<CollectionViewSource x:Key="StatusRowsView" Source="{StaticResource StatusRows}">
@@ -47,13 +49,16 @@
 			</Setter>
 		</Style>
 	</Window.Resources>
-	<Grid>
+
+	<Grid x:Name="windowLayoutGrid">
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto"/>
-			<RowDefinition/>
-			<RowDefinition/>
+			<RowDefinition MinHeight="25"/>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition MinHeight="25"/>
 			<RowDefinition Height="Auto"/>
 		</Grid.RowDefinitions>
+
 		<Menu Grid.Row="0">
 			<MenuItem Header="_View">
 				<MenuItem Header="_Add Location..." Command="local:Commands.AddLocation"/>
@@ -70,7 +75,7 @@
 		</Menu>
 
 		<DataGrid x:Name="statusGrid" ItemsSource="{Binding Source={StaticResource StatusRowsView}}"
-				  IsReadOnly="True" Grid.Row="1" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" CanUserReorderColumns="False" CanUserSortColumns="False" GridLinesVisibility="None" AutoGenerateColumns="False" CanUserResizeRows="False">
+				  IsReadOnly="True" Grid.Row="1" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" CanUserReorderColumns="False" CanUserSortColumns="False" GridLinesVisibility="None" AutoGenerateColumns="False" CanUserResizeRows="False" HeadersVisibility="Column">
 			<DataGrid.GroupStyle>
 				<GroupStyle ContainerStyle="{StaticResource StatusGroupHeaderStyle}">
 					<GroupStyle.Panel>
@@ -90,7 +95,9 @@
 			</DataGrid.Columns>
         </DataGrid>
 
-		<DataGrid x:Name="logGrid" IsReadOnly="True" Grid.Row="2" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" CanUserSortColumns="False" CanUserReorderColumns="False" GridLinesVisibility="None" AutoGenerateColumns="False" CanUserResizeRows="False">
+		<GridSplitter x:Name="splitter" Grid.Row="2" HorizontalAlignment="Stretch" VerticalAlignment="Center" ShowsPreview="True" Height="4" />
+
+		<DataGrid x:Name="logGrid" IsReadOnly="True" Grid.Row="3" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" CanUserSortColumns="False" CanUserReorderColumns="False" GridLinesVisibility="None" AutoGenerateColumns="False" CanUserResizeRows="False" HeadersVisibility="Column">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Peer Group"/>
 				<DataGridTextColumn Header="Start"/>
@@ -101,7 +108,7 @@
 			</DataGrid.Columns>
         </DataGrid>
 
-		<StatusBar Grid.Row="3">
+		<StatusBar Grid.Row="4">
 			<StatusBarItem>
 				<TextBlock>Monitored time:</TextBlock>
 			</StatusBarItem>

@@ -56,6 +56,25 @@ namespace WirePeep
 
 		#endregion
 
+		#region Private Properties
+
+		private RowDefinition[] SplitterTargetRows
+		{
+			get
+			{
+				int splitterRow = Grid.GetRow(this.splitter);
+				var result = new[]
+				{
+					this.windowLayoutGrid.RowDefinitions[splitterRow - 1],
+					this.windowLayoutGrid.RowDefinitions[splitterRow + 1],
+				};
+
+				return result;
+			}
+		}
+
+		#endregion
+
 		#region Public Methods
 
 		public void Dispose()
@@ -109,6 +128,23 @@ namespace WirePeep
 			this.options = new Options(settings.GetSubNode(nameof(Options), false));
 			this.profile = new Profile(settings.GetSubNode(nameof(Profile), false));
 
+			ISettingsNode splitterNode = settings.GetSubNode(nameof(GridSplitter), false);
+			if (splitterNode != null)
+			{
+				RowDefinition[] splitterTargetRows = this.SplitterTargetRows;
+				for (int i = 0; i < splitterTargetRows.Length; i++)
+				{
+					ISettingsNode rowNode = splitterNode.GetSubNode($"Row{i}", false);
+					if (rowNode != null)
+					{
+						double value = rowNode.GetValue(nameof(GridLength.Value), 1.0);
+						GridUnitType unitType = rowNode.GetValue(nameof(GridLength.GridUnitType), GridUnitType.Star);
+						RowDefinition row = splitterTargetRows[i];
+						row.Height = new GridLength(value, unitType);
+					}
+				}
+			}
+
 			this.stateManager = new StateManager(this.profile);
 			this.backgroundTimer = new Timer(this.BackgroundTimerCallback, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
 		}
@@ -121,6 +157,18 @@ namespace WirePeep
 			var settings = e.SettingsNode;
 			this.profile?.Save(settings.GetSubNode(nameof(Profile), true));
 			this.options?.Save(settings.GetSubNode(nameof(Options), true));
+
+			settings.DeleteSubNode(nameof(GridSplitter));
+			ISettingsNode splitterNode = settings.GetSubNode(nameof(GridSplitter), true);
+			RowDefinition[] splitterTargetRows = this.SplitterTargetRows;
+			for (int i = 0; i < splitterTargetRows.Length; i++)
+			{
+				RowDefinition row = splitterTargetRows[i];
+				GridLength rowHeight = row.Height;
+				ISettingsNode rowNode = splitterNode.GetSubNode($"Row{i}", true);
+				rowNode.SetValue(nameof(rowHeight.Value), rowHeight.Value);
+				rowNode.SetValue(nameof(rowHeight.GridUnitType), rowHeight.GridUnitType);
+			}
 		}
 
 		private void ExitExecuted(object sender, ExecutedRoutedEventArgs e)
