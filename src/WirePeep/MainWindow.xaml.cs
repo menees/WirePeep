@@ -29,13 +29,13 @@ namespace WirePeep
 		#region Private Data Members
 
 		private readonly WindowSaver saver;
+		private readonly StatusRowCollection statusRows;
 		private Options options;
 		private Profile profile;
 		private StateManager stateManager;
 		private Timer backgroundTimer;
 		private int updatingLock;
 		private int closing;
-		private ObservableCollection<StatusRow> statusRows;
 		private Dictionary<string, StatusRow> rowMap;
 
 		#endregion
@@ -46,13 +46,8 @@ namespace WirePeep
 		{
 			this.InitializeComponent();
 
-			this.statusRows = new ObservableCollection<StatusRow>();
+			this.statusRows = (StatusRowCollection)this.Resources["StatusRows"];
 			this.rowMap = new Dictionary<string, StatusRow>();
-
-			// Grouping example came from https://www.c-sharpcorner.com/uploadfile/dpatra/grouping-in-datagrid-in-wpf/.
-			ListCollectionView collectionView = new ListCollectionView(this.statusRows);
-			collectionView.GroupDescriptions.Add(new PropertyGroupDescription(nameof(StatusRow.GroupName)));
-			this.statusGrid.ItemsSource = collectionView;
 
 			this.saver = new WindowSaver(this);
 			this.saver.LoadSettings += this.SaverLoadSettings;

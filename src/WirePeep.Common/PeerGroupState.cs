@@ -17,6 +17,7 @@ namespace WirePeep
 		public PeerGroupState(PeerGroup peerGroup)
 		{
 			this.PeerGroup = peerGroup;
+			this.UpdateCounter = -1;
 		}
 
 		#endregion

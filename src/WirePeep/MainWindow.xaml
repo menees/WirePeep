@@ -16,6 +16,12 @@
 		<CommandBinding Command="local:Commands.About" Executed="AboutExecuted" />
 	</Window.CommandBindings>
 	<Window.Resources>
+		<local:StatusRowCollection x:Key="StatusRows"/>
+		<CollectionViewSource x:Key="StatusRowsView" Source="{StaticResource StatusRows}">
+			<CollectionViewSource.GroupDescriptions>
+				<PropertyGroupDescription PropertyName="GroupName"/>
+			</CollectionViewSource.GroupDescriptions>
+		</CollectionViewSource>
 		<Style x:Key="StatusGroupHeaderStyle" TargetType="{x:Type GroupItem}">
 			<Setter Property="Template">
 				<Setter.Value>
@@ -24,7 +30,7 @@
 							<Expander.Header>
 								<DockPanel>
 									<!-- The DataContext here is a CollectionViewGroup (based on the PropertyGroupDescription.) -->
-									<CheckBox IsChecked="{Binding Items[0].IsGroupFailed}"/>
+									<CheckBox IsChecked="{Binding Items[0].IsGroupFailed}" IsEnabled="False"/>
 									<TextBlock Text="{Binding Name}"/>
 									<TextBlock Text=" Poll: "/>
 									<TextBlock Text="{Binding Items[0].GroupPoll}"/>
@@ -63,7 +69,8 @@
 			</MenuItem>
 		</Menu>
 
-		<DataGrid x:Name="statusGrid" IsReadOnly="True" Grid.Row="1" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" CanUserReorderColumns="False" CanUserSortColumns="False" GridLinesVisibility="None" AutoGenerateColumns="False" CanUserResizeRows="False">
+		<DataGrid x:Name="statusGrid" ItemsSource="{Binding Source={StaticResource StatusRowsView}}"
+				  IsReadOnly="True" Grid.Row="1" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" CanUserReorderColumns="False" CanUserSortColumns="False" GridLinesVisibility="None" AutoGenerateColumns="False" CanUserResizeRows="False">
 			<DataGrid.GroupStyle>
 				<GroupStyle ContainerStyle="{StaticResource StatusGroupHeaderStyle}">
 					<GroupStyle.Panel>
