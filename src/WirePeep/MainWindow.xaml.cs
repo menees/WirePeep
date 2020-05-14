@@ -116,6 +116,10 @@ namespace WirePeep
 			}
 
 			this.rowMap = newRowMap;
+
+			TimeSpan monitored = this.stateManager.Monitored;
+			monitored = TimeSpan.FromTicks(monitored.Ticks - (monitored.Ticks % TimeSpan.TicksPerSecond));
+			this.monitoredTime.Text = monitored.ToString();
 		}
 
 		#endregion

@@ -16,10 +16,10 @@ namespace WirePeep
 		#region Private Data Members
 
 		private string groupName;
-		private TimeSpan groupFail;
-		private TimeSpan groupPoll;
-		private TimeSpan groupWait;
-		private bool isGroupFailed;
+		private int groupFailSeconds;
+		private int groupPollSeconds;
+		private int groupWaitMilliseconds;
+		private bool isGroupAccessible;
 		private string locationName;
 		private IPAddress locationAddress;
 		private bool? isLocationConnected;
@@ -38,13 +38,13 @@ namespace WirePeep
 
 		public string GroupName { get => this.groupName; set => this.Update(ref this.groupName, value); }
 
-		public TimeSpan GroupFail { get => this.groupFail; set => this.Update(ref this.groupFail, value); }
+		public int GroupFailSeconds { get => this.groupFailSeconds; set => this.Update(ref this.groupFailSeconds, value); }
 
-		public TimeSpan GroupPoll { get => this.groupPoll; set => this.Update(ref this.groupPoll, value); }
+		public int GroupPollSeconds { get => this.groupPollSeconds; set => this.Update(ref this.groupPollSeconds, value); }
 
-		public TimeSpan GroupWait { get => this.groupWait; set => this.Update(ref this.groupWait, value); }
+		public int GroupWaitMilliseconds { get => this.groupWaitMilliseconds; set => this.Update(ref this.groupWaitMilliseconds, value); }
 
-		public bool IsGroupFailed { get => this.isGroupFailed; set => this.Update(ref this.isGroupFailed, value); }
+		public bool IsGroupAccessible { get => this.isGroupAccessible; set => this.Update(ref this.isGroupAccessible, value); }
 
 		#endregion
 
@@ -72,10 +72,10 @@ namespace WirePeep
 		{
 			PeerGroup peerGroup = peerGroupState.PeerGroup;
 			this.GroupName = peerGroup.Name;
-			this.GroupFail = peerGroup.Fail;
-			this.GroupPoll = peerGroup.Poll;
-			this.GroupWait = peerGroup.Wait;
-			this.IsGroupFailed = peerGroupState.IsFailed;
+			this.GroupFailSeconds = (int)peerGroup.Fail.TotalSeconds;
+			this.GroupPollSeconds = (int)peerGroup.Poll.TotalSeconds;
+			this.GroupWaitMilliseconds = (int)peerGroup.Wait.TotalMilliseconds;
+			this.IsGroupAccessible = !peerGroupState.IsFailed;
 
 			Location location = locationState.Location;
 			this.LocationName = location.Name;

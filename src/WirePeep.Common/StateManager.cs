@@ -39,6 +39,10 @@ namespace WirePeep
 
 		#region Public Properties
 
+		public DateTime Started { get; } = DateTime.UtcNow;
+
+		public TimeSpan Monitored => DateTime.UtcNow - this.Started;
+
 		public ObservableCollection<PeerGroupState> PeerGroups { get; } = new ObservableCollection<PeerGroupState>();
 
 		public ObservableCollection<LocationState> Locations { get; } = new ObservableCollection<LocationState>();

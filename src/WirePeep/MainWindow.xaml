@@ -30,18 +30,20 @@
 			<Setter Property="Template">
 				<Setter.Value>
 					<ControlTemplate TargetType="{x:Type GroupItem}">
-						<Expander x:Name="exp" IsExpanded="True">
+						<Expander x:Name="exp" IsExpanded="True"
+								  Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
 							<Expander.Header>
 								<DockPanel>
 									<!-- The DataContext here is a CollectionViewGroup (based on the PropertyGroupDescription.) -->
-									<CheckBox IsChecked="{Binding Items[0].IsGroupFailed}" IsEnabled="False"/>
-									<TextBlock Text="{Binding Name}"/>
-									<TextBlock Text=" Poll: "/>
-									<TextBlock Text="{Binding Items[0].GroupPoll}"/>
-									<TextBlock Text=" Wait: "/>
-									<TextBlock Text="{Binding Items[0].GroupWait}"/>
-									<TextBlock Text=" Fail: "/>
-									<TextBlock Text="{Binding Items[0].GroupFail}"/>
+									<CheckBox IsChecked="{Binding Items[0].IsGroupAccessible}" IsEnabled="False"/>
+									<TextBlock Text="{Binding Name}" FontWeight="Bold"/>
+									<TextBlock Text="  —  Poll every "/>
+									<TextBlock Text="{Binding Items[0].GroupPollSeconds}"/>
+									<TextBlock Text="s.  Wait "/>
+									<TextBlock Text="{Binding Items[0].GroupWaitMilliseconds}"/>
+									<TextBlock Text="ms.  Fail after "/>
+									<TextBlock Text="{Binding Items[0].GroupFailSeconds}"/>
+									<TextBlock Text="s outage."/>
 								</DockPanel>
 							</Expander.Header>
 							<ItemsPresenter />
@@ -66,7 +68,7 @@
 			<RowDefinition Height="Auto"/>
 		</Grid.RowDefinitions>
 
-		<Menu Grid.Row="0">
+		<Menu Grid.Row="0" Padding="2">
 			<MenuItem Header="_View">
 				<MenuItem Header="_Add Location..." Command="local:Commands.AddLocation"/>
 				<MenuItem Header="_Export Log..." Command="local:Commands.ExportLog"/>
@@ -120,14 +122,14 @@
 				<TextBlock>Monitored time:</TextBlock>
 			</StatusBarItem>
 			<StatusBarItem>
-				<TextBlock>0:00:00</TextBlock>
+				<TextBlock x:Name="monitoredTime">0:00:00</TextBlock>
 			</StatusBarItem>
 			<Separator/>
 			<StatusBarItem>
 				<TextBlock>Failure count:</TextBlock>
 			</StatusBarItem>
 			<StatusBarItem>
-				<TextBlock>0</TextBlock>
+				<TextBlock x:Name="failureCount">0</TextBlock>
 			</StatusBarItem>
 		</StatusBar>
 	</Grid>
