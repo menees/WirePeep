@@ -34,6 +34,8 @@ namespace WirePeep
 
 		public bool IsFailed { get; private set; }
 
+		public DateTime? IsFailedChanged { get; private set; }
+
 		#endregion
 
 		#region Public Methods
@@ -77,6 +79,7 @@ namespace WirePeep
 				this.IsConnectedChanged = DateTime.UtcNow;
 			}
 
+			bool wasFailed = this.IsFailed;
 			if (this.IsConnected)
 			{
 				this.IsFailed = false;
@@ -84,6 +87,11 @@ namespace WirePeep
 			else if (!this.IsFailed && (this.IsConnectedChanged == null || DateTime.UtcNow >= (this.IsConnectedChanged.Value + this.PeerGroup.Fail)))
 			{
 				this.IsFailed = true;
+			}
+
+			if (this.IsFailed != wasFailed)
+			{
+				this.IsFailedChanged = DateTime.UtcNow;
 			}
 
 			return result;

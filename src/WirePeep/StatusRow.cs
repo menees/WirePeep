@@ -6,6 +6,8 @@ using System.ComponentModel;
 using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Windows.Input;
+using Menees;
 
 #endregion
 
@@ -75,7 +77,17 @@ namespace WirePeep
 			this.GroupFailSeconds = (int)peerGroup.Fail.TotalSeconds;
 			this.GroupPollSeconds = (int)peerGroup.Poll.TotalSeconds;
 			this.GroupWaitMilliseconds = (int)peerGroup.Wait.TotalMilliseconds;
-			this.IsGroupAccessible = !peerGroupState.IsFailed;
+
+			bool isGroupAccessible = !peerGroupState.IsFailed;
+#if DEBUG
+			// TODO: ApplicationInfo.IsDebugBuild: Assembly.GetEntryAssembly --> [assembly: AssemblyConfiguration("Debug")]. [Bill, 5/15/2020]
+			// In debug builds simulate a failure when ScrollLock is toggled on.
+			if (isGroupAccessible && Keyboard.IsKeyToggled(Key.Scroll))
+			{
+				isGroupAccessible = false;
+			}
+#endif
+			this.IsGroupAccessible = isGroupAccessible;
 
 			Location location = locationState.Location;
 			this.LocationName = location.Name;
