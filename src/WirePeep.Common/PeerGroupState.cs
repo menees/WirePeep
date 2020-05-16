@@ -12,12 +12,6 @@ namespace WirePeep
 {
 	public sealed class PeerGroupState
 	{
-		#region Private Data Members
-
-		private DateTime lastUpdated;
-
-		#endregion
-
 		#region Constructors
 
 		internal PeerGroupState(PeerGroup peerGroup)
@@ -42,6 +36,10 @@ namespace WirePeep
 
 		public DateTime? IsFailedChanged { get; private set; }
 
+		public DateTime LastUpdated { get; private set; }
+
+		public DateTime LastUpdateRequest { get; private set; }
+
 		#endregion
 
 		#region Public Methods
@@ -50,9 +48,10 @@ namespace WirePeep
 
 		public void Update(DateTime utcNow, IReadOnlyList<LocationState> locations, bool simulateFailure)
 		{
-			if (this.PeerGroup.CanPoll(utcNow, this.lastUpdated))
+			this.LastUpdateRequest = utcNow;
+			if (this.PeerGroup.CanPoll(utcNow, this.LastUpdated))
 			{
-				this.lastUpdated = utcNow;
+				this.LastUpdated = utcNow;
 
 				// Increment this each time so we can uniquely identify which Update call last
 				// updated an item and so we'll round-robin through each location in the list.

@@ -216,13 +216,28 @@
 		<GridSplitter x:Name="splitter" Grid.Row="2" HorizontalAlignment="Stretch" VerticalAlignment="Center" ShowsPreview="True" Height="4" />
 
 		<DataGrid x:Name="logGrid" Grid.Row="3" ItemsSource="{Binding Source={StaticResource LogRowsView}}" Style="{StaticResource ListViewGrid}">
+			<DataGrid.Resources>
+				<Style TargetType="TextBlock" x:Key="RedIfActive">
+					<Setter Property="Margin" Value="2,0,2,0"/>
+					<Style.Triggers>
+						<!-- TODO: Use MultiDataTrigger to only do this if the row isn't selected. [Bill, 5/16/2020] -->
+						<DataTrigger Binding="{Binding IsActive}" Value="True">
+							<Setter Property="Foreground" Value="Red"/>
+						</DataTrigger>
+					</Style.Triggers>
+				</Style>
+				<Style TargetType="TextBlock" x:Key="RedIfActive-RightAlign" BasedOn="{StaticResource RedIfActive}">
+					<Setter Property="HorizontalAlignment" Value="Stretch"/>
+					<Setter Property="TextAlignment" Value="Right"/>
+				</Style>
+			</DataGrid.Resources>
 			<DataGrid.Columns>
-				<DataGridTextColumn Header="Peer Group"/>
-				<DataGridTextColumn Header="Start"/>
-				<DataGridTextColumn Header="Length"/>
-				<DataGridTextColumn Header="End"/>
-				<DataGridTextColumn Header="Since Previous"/>
-				<DataGridTextColumn Header="Comment"/>
+				<DataGridTextColumn Header="Peer Group" Binding="{Binding PeerGroupName}" ElementStyle="{StaticResource RedIfActive}"/>
+				<DataGridTextColumn Header="Start" Binding="{Binding FailStarted}" ElementStyle="{StaticResource RedIfActive}"/>
+				<DataGridTextColumn Header="Length" Binding="{Binding Length}" ElementStyle="{StaticResource RedIfActive-RightAlign}"/>
+				<DataGridTextColumn Header="End" Binding="{Binding FailEnded}" ElementStyle="{StaticResource RedIfActive}"/>
+				<DataGridTextColumn Header="Since Previous" Binding="{Binding SincePrevious}" ElementStyle="{StaticResource RedIfActive-RightAlign}"/>
+				<DataGridTextColumn Header="Comment" Binding="{Binding Comment}" ElementStyle="{StaticResource RedIfActive}"/>
 			</DataGrid.Columns>
 		</DataGrid>
 
@@ -238,7 +253,7 @@
 				<TextBlock>Failure count:</TextBlock>
 			</StatusBarItem>
 			<StatusBarItem>
-				<TextBlock x:Name="failureCount">0</TextBlock>
+				<TextBlock x:Name="failureCount" >0</TextBlock>
 			</StatusBarItem>
 		</StatusBar>
 	</Grid>

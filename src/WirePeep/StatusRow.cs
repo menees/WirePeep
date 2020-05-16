@@ -13,7 +13,7 @@ using Menees;
 
 namespace WirePeep
 {
-	internal sealed class StatusRow : INotifyPropertyChanged
+	internal sealed class StatusRow : PropertyChangeNotifier
 	{
 		#region Private Data Members
 
@@ -27,12 +27,6 @@ namespace WirePeep
 		private bool? isLocationConnected;
 		private int? locationRoundtripMilliseconds;
 		private bool isLocationUpToDate;
-
-		#endregion
-
-		#region Public Events
-
-		public event PropertyChangedEventHandler PropertyChanged;
 
 		#endregion
 
@@ -85,24 +79,6 @@ namespace WirePeep
 			this.IsLocationConnected = locationState.IsConnected;
 			this.LocationRoundtripMilliseconds = locationState.IsConnected ?? false ? (int)locationState.RoundtripTime.TotalMilliseconds : (int?)null;
 			this.IsLocationUpToDate = locationState.UpdateCounter == peerGroupState.UpdateCounter;
-		}
-
-		#endregion
-
-		#region Private Methods
-
-		private void Update<T>(ref T member, T value, [CallerMemberName] string callerMemberName = null)
-		{
-			if (!EqualityComparer<T>.Default.Equals(member, value))
-			{
-				member = value;
-				PropertyChangedEventHandler handler = this.PropertyChanged;
-				if (handler != null)
-				{
-					PropertyChangedEventArgs args = new PropertyChangedEventArgs(callerMemberName);
-					handler(this, args);
-				}
-			}
 		}
 
 		#endregion

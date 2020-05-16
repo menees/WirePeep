@@ -91,6 +91,13 @@ namespace WirePeep
 
 		#endregion
 
+		#region Internal Methods
+
+		// TODO: Move to ConvertUtility. [Bill, 5/16/2020]
+		internal static TimeSpan TruncateToSeconds(TimeSpan value) => TimeSpan.FromTicks(value.Ticks - (value.Ticks % TimeSpan.TicksPerSecond));
+
+		#endregion
+
 		#region Private Methods
 
 		private void UpdateStates(IDictionary<PeerGroupState, IReadOnlyList<LocationState>> states)
@@ -100,8 +107,11 @@ namespace WirePeep
 
 			// This isn't a dependency property, so we can't bind to it. We have to manually update it.
 			TimeSpan monitored = this.stateManager.Monitored;
-			monitored = TimeSpan.FromTicks(monitored.Ticks - (monitored.Ticks % TimeSpan.TicksPerSecond));
+			monitored = TruncateToSeconds(monitored);
 			this.monitoredTime.Text = monitored.ToString();
+
+			// TODO: Is there a way to bind to this in XAML? [Bill, 5/16/2020]
+			this.failureCount.Text = this.logRows.Count.ToString();
 
 			// Optionally, simulate a failure when ScrollLock is toggled on.
 			this.simulateFailure = this.options.ScrollLockSimulatesFailure && Keyboard.IsKeyToggled(Key.Scroll);
@@ -157,8 +167,9 @@ namespace WirePeep
 				}
 				else if (peerGroupState.IsFailed)
 				{
+					LogRow previous = this.logRows.FirstOrDefault(r => r.PeerGroupName == peerGroupName);
 					row = new LogRow();
-					row.Update(peerGroupState);
+					row.Update(peerGroupState, previous);
 					this.logRows.Insert(0, row);
 					this.failedPeerGroupToLogRowMap.Add(peerGroupName, row);
 				}
