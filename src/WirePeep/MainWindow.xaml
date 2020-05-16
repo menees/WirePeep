@@ -19,6 +19,7 @@
 
 	<Window.Resources>
 		<local:StatusRowCollection x:Key="StatusRows"/>
+		<local:LogRowCollection x:Key="LogRows"/>
 
 		<CollectionViewSource x:Key="StatusRowsView" Source="{StaticResource StatusRows}">
 			<CollectionViewSource.GroupDescriptions>
@@ -26,8 +27,21 @@
 			</CollectionViewSource.GroupDescriptions>
 		</CollectionViewSource>
 
+		<CollectionViewSource x:Key="LogRowsView" Source="{StaticResource LogRows}"/>
+
 		<Style x:Key="VCenterText" TargetType="TextBlock">
 			<Setter Property="VerticalAlignment" Value="Center"/>
+		</Style>
+
+		<Style x:Key="ListViewGrid" TargetType="DataGrid">
+			<Setter Property="IsReadOnly" Value="True"/>
+			<Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.WindowBrushKey}}"/>
+			<Setter Property="CanUserReorderColumns" Value="False"/>
+			<Setter Property="CanUserSortColumns" Value="False"/>
+			<Setter Property="GridLinesVisibility" Value="None"/>
+			<Setter Property="AutoGenerateColumns" Value="False"/>
+			<Setter Property="CanUserResizeRows" Value="False"/>
+			<Setter Property="HeadersVisibility" Value="Column"/>
 		</Style>
 
 		<!-- Note: These geometries assume they're drawn in a 24x24 Canvas. Wrap the Canvas in a ViewBox to scale it up or down. -->
@@ -125,8 +139,7 @@
 			</MenuItem>
 		</Menu>
 
-		<DataGrid x:Name="statusGrid" ItemsSource="{Binding Source={StaticResource StatusRowsView}}"
-				  IsReadOnly="True" Grid.Row="1" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" CanUserReorderColumns="False" CanUserSortColumns="False" GridLinesVisibility="None" AutoGenerateColumns="False" CanUserResizeRows="False" HeadersVisibility="Column">
+		<DataGrid x:Name="statusGrid" Grid.Row="1" ItemsSource="{Binding Source={StaticResource StatusRowsView}}" Style="{StaticResource ListViewGrid}">
 			<DataGrid.GroupStyle>
 				<GroupStyle ContainerStyle="{StaticResource StatusGroupHeaderStyle}">
 					<GroupStyle.Panel>
@@ -202,7 +215,7 @@
 
 		<GridSplitter x:Name="splitter" Grid.Row="2" HorizontalAlignment="Stretch" VerticalAlignment="Center" ShowsPreview="True" Height="4" />
 
-		<DataGrid x:Name="logGrid" IsReadOnly="True" Grid.Row="3" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" CanUserSortColumns="False" CanUserReorderColumns="False" GridLinesVisibility="None" AutoGenerateColumns="False" CanUserResizeRows="False" HeadersVisibility="Column">
+		<DataGrid x:Name="logGrid" Grid.Row="3" ItemsSource="{Binding Source={StaticResource LogRowsView}}" Style="{StaticResource ListViewGrid}">
 			<DataGrid.Columns>
 				<DataGridTextColumn Header="Peer Group"/>
 				<DataGridTextColumn Header="Start"/>

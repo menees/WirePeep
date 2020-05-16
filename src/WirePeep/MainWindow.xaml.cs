@@ -30,6 +30,9 @@ namespace WirePeep
 
 		private readonly WindowSaver saver;
 		private readonly StatusRowCollection statusRows;
+		private readonly LogRowCollection logRows;
+		private readonly Dictionary<string, LogRow> failedPeerGroupToLogRowMap;
+
 		private Options options;
 		private Profile profile;
 		private StateManager stateManager;
@@ -37,7 +40,7 @@ namespace WirePeep
 		private int updatingLock;
 		private bool closing;
 		private bool simulateFailure = Convert.ToBoolean(0);
-		private Dictionary<string, StatusRow> rowMap;
+		private Dictionary<string, StatusRow> statusRowMap;
 
 		#endregion
 
@@ -48,7 +51,10 @@ namespace WirePeep
 			this.InitializeComponent();
 
 			this.statusRows = (StatusRowCollection)this.Resources["StatusRows"];
-			this.rowMap = new Dictionary<string, StatusRow>();
+			this.statusRowMap = new Dictionary<string, StatusRow>(StringComparer.CurrentCultureIgnoreCase);
+
+			this.logRows = (LogRowCollection)this.Resources["LogRows"];
+			this.failedPeerGroupToLogRowMap = new Dictionary<string, LogRow>(this.statusRowMap.Comparer);
 
 			this.saver = new WindowSaver(this);
 			this.saver.LoadSettings += this.SaverLoadSettings;
@@ -89,14 +95,28 @@ namespace WirePeep
 
 		private void UpdateStates(IDictionary<PeerGroupState, IReadOnlyList<LocationState>> states)
 		{
-			var newRowMap = new Dictionary<string, StatusRow>(this.rowMap.Count);
+			this.UpdateStatusRows(states);
+			this.UpdateLogRows(states.Keys);
+
+			// This isn't a dependency property, so we can't bind to it. We have to manually update it.
+			TimeSpan monitored = this.stateManager.Monitored;
+			monitored = TimeSpan.FromTicks(monitored.Ticks - (monitored.Ticks % TimeSpan.TicksPerSecond));
+			this.monitoredTime.Text = monitored.ToString();
+
+			// Optionally, simulate a failure when ScrollLock is toggled on.
+			this.simulateFailure = this.options.ScrollLockSimulatesFailure && Keyboard.IsKeyToggled(Key.Scroll);
+		}
+
+		private void UpdateStatusRows(IDictionary<PeerGroupState, IReadOnlyList<LocationState>> states)
+		{
+			var newRowMap = new Dictionary<string, StatusRow>(this.statusRowMap.Count, this.statusRowMap.Comparer);
 			foreach (var pair in states)
 			{
 				PeerGroupState peerGroupState = pair.Key;
 				foreach (LocationState locationState in pair.Value)
 				{
 					string key = $"{peerGroupState.PeerGroup.Name}\0\0{locationState.Location.Name}";
-					if (this.rowMap.TryGetValue(key, out StatusRow row))
+					if (this.statusRowMap.TryGetValue(key, out StatusRow row))
 					{
 						row.Update(peerGroupState, locationState);
 					}
@@ -111,19 +131,45 @@ namespace WirePeep
 				}
 			}
 
-			foreach (var pair in this.rowMap.Where(pair => !newRowMap.ContainsKey(pair.Key)))
+			foreach (var pair in this.statusRowMap.Where(pair => !newRowMap.ContainsKey(pair.Key)))
 			{
 				this.statusRows.Remove(pair.Value);
 			}
 
-			this.rowMap = newRowMap;
+			this.statusRowMap = newRowMap;
+		}
 
-			TimeSpan monitored = this.stateManager.Monitored;
-			monitored = TimeSpan.FromTicks(monitored.Ticks - (monitored.Ticks % TimeSpan.TicksPerSecond));
-			this.monitoredTime.Text = monitored.ToString();
+		private void UpdateLogRows(ICollection<PeerGroupState> peerGroupStates)
+		{
+			HashSet<string> currentPeerGroups = new HashSet<string>(this.failedPeerGroupToLogRowMap.Comparer);
+			foreach (PeerGroupState peerGroupState in peerGroupStates)
+			{
+				PeerGroup peerGroup = peerGroupState.PeerGroup;
+				string peerGroupName = peerGroup.Name;
 
-			// Optionally, simulate a failure when ScrollLock is toggled on.
-			this.simulateFailure = this.options.ScrollLockSimulatesFailure && Keyboard.IsKeyToggled(Key.Scroll);
+				if (this.failedPeerGroupToLogRowMap.TryGetValue(peerGroupName, out LogRow row))
+				{
+					row.Update(peerGroupState);
+					if (!peerGroupState.IsFailed)
+					{
+						this.failedPeerGroupToLogRowMap.Remove(peerGroupName);
+					}
+				}
+				else if (peerGroupState.IsFailed)
+				{
+					row = new LogRow();
+					row.Update(peerGroupState);
+					this.logRows.Insert(0, row);
+					this.failedPeerGroupToLogRowMap.Add(peerGroupName, row);
+				}
+
+				currentPeerGroups.Add(peerGroupName);
+			}
+
+			foreach (string peerGroupName in this.failedPeerGroupToLogRowMap.Keys.Where(key => !currentPeerGroups.Contains(key)).ToArray())
+			{
+				this.failedPeerGroupToLogRowMap.Remove(peerGroupName);
+			}
 		}
 
 		#endregion
