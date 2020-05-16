@@ -40,7 +40,7 @@ namespace WirePeep
 
 		#region Public Methods
 
-		public bool Update(IReadOnlyList<LocationState> locations)
+		public bool Update(IReadOnlyList<LocationState> locations, bool simulateFailure)
 		{
 			// Increment this each time so we can uniquely identify which Update call last
 			// updated an item and so we'll round-robin through each location in the list.
@@ -54,7 +54,7 @@ namespace WirePeep
 			{
 				int locationIndex = (int)unchecked((this.UpdateCounter + i) % numLocations);
 				LocationState locationState = locations[locationIndex];
-				bool? wasLocationUpdated = locationState.Update(this.UpdateCounter);
+				bool? wasLocationUpdated = locationState.Update(this.UpdateCounter, simulateFailure);
 
 				// A null result means we've polled it too recently.
 				if (wasLocationUpdated != null)

@@ -35,7 +35,8 @@ namespace WirePeep
 		private StateManager stateManager;
 		private Timer backgroundTimer;
 		private int updatingLock;
-		private int closing;
+		private bool closing;
+		private bool simulateFailure = Convert.ToBoolean(0);
 		private Dictionary<string, StatusRow> rowMap;
 
 		#endregion
@@ -120,6 +121,12 @@ namespace WirePeep
 			TimeSpan monitored = this.stateManager.Monitored;
 			monitored = TimeSpan.FromTicks(monitored.Ticks - (monitored.Ticks % TimeSpan.TicksPerSecond));
 			this.monitoredTime.Text = monitored.ToString();
+
+#if DEBUG
+			// TODO: ApplicationInfo.IsDebugBuild: Assembly.GetEntryAssembly --> [assembly: AssemblyConfiguration("Debug")]. [Bill, 5/15/2020]
+			// In debug builds simulate a failure when ScrollLock is toggled on.
+			this.simulateFailure = Keyboard.IsKeyToggled(Key.Scroll);
+#endif
 		}
 
 		#endregion
@@ -155,7 +162,7 @@ namespace WirePeep
 
 		private void SaverSaveSettings(object sender, SettingsEventArgs e)
 		{
-			Interlocked.Increment(ref this.closing);
+			this.closing = true;
 			this.backgroundTimer.Dispose();
 
 			var settings = e.SettingsNode;
@@ -217,11 +224,11 @@ namespace WirePeep
 		private void BackgroundTimerCallback(object state)
 		{
 			// Only let one Update run at a time. If the callback takes longer than 1 second, it will be invoked again from another thread.
-			if (this.closing == 0 && Interlocked.CompareExchange(ref this.updatingLock, 1, 0) == 0)
+			if (!this.closing && Interlocked.CompareExchange(ref this.updatingLock, 1, 0) == 0)
 			{
 				try
 				{
-					Dictionary<PeerGroupState, IReadOnlyList<LocationState>> states = this.stateManager.Update();
+					Dictionary<PeerGroupState, IReadOnlyList<LocationState>> states = this.stateManager.Update(this.simulateFailure);
 					this.Dispatcher.BeginInvoke(new Action(() => this.UpdateStates(states)));
 				}
 				finally

@@ -77,17 +77,7 @@ namespace WirePeep
 			this.GroupFailSeconds = (int)peerGroup.Fail.TotalSeconds;
 			this.GroupPollSeconds = (int)peerGroup.Poll.TotalSeconds;
 			this.GroupWaitMilliseconds = (int)peerGroup.Wait.TotalMilliseconds;
-
-			bool isGroupAccessible = !peerGroupState.IsFailed;
-#if DEBUG
-			// TODO: ApplicationInfo.IsDebugBuild: Assembly.GetEntryAssembly --> [assembly: AssemblyConfiguration("Debug")]. [Bill, 5/15/2020]
-			// In debug builds simulate a failure when ScrollLock is toggled on.
-			if (isGroupAccessible && Keyboard.IsKeyToggled(Key.Scroll))
-			{
-				isGroupAccessible = false;
-			}
-#endif
-			this.IsGroupAccessible = isGroupAccessible;
+			this.IsGroupAccessible = !peerGroupState.IsFailed;
 
 			Location location = locationState.Location;
 			this.LocationName = location.Name;

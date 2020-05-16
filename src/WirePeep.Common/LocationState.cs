@@ -39,7 +39,7 @@ namespace WirePeep
 
 		#region Public Methods
 
-		public bool? Update(long counter)
+		public bool? Update(long counter, bool simulateFailure)
 		{
 			bool? result = null;
 
@@ -51,7 +51,8 @@ namespace WirePeep
 
 				using (Pinger pinger = new Pinger(peerGroup.Wait))
 				{
-					this.IsConnected = pinger.TryPing(this.Location.Address, out TimeSpan roundtripTime);
+					TimeSpan roundtripTime = TimeSpan.Zero;
+					this.IsConnected = !simulateFailure && pinger.TryPing(this.Location.Address, out roundtripTime);
 					this.RoundtripTime = roundtripTime;
 					this.UpdateCounter = counter;
 				}

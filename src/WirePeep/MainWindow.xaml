@@ -30,6 +30,7 @@
 			<Setter Property="VerticalAlignment" Value="Center"/>
 		</Style>
 
+		<!-- Note: These geometries assume they're drawn in a 24x24 Canvas. Wrap the Canvas in a ViewBox to scale it up or down. -->
 		<!-- https://materialdesignicons.com/icon/check-bold -->
 		<Geometry x:Key="ConnectedPathData">
 			M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z
@@ -60,7 +61,7 @@
 										</Style.Triggers>
 									</Style>
 								</DockPanel.Style>
-								<Viewbox>
+								<Viewbox Height="22" Margin="1">
 									<Canvas Width="24" Height="24">
 										<Path>
 											<Path.Style>
@@ -137,10 +138,64 @@
 			</DataGrid.GroupStyle>
 
 			<DataGrid.Columns>
+				<DataGridTemplateColumn Header="Poll">
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<Viewbox Height="16">
+							<Canvas Width="24" Height="24">
+								<Path>
+									<Path.Style>
+										<Style TargetType="Path">
+											<Style.Triggers>
+												<!-- IsLocationConnected is a bool? with a null default, so we show no Path for that. -->
+												<DataTrigger Binding="{Binding IsLocationConnected}" Value="True">
+													<Setter Property="Data" Value="{StaticResource ConnectedPathData}"/>
+												</DataTrigger>
+												<DataTrigger Binding="{Binding IsLocationConnected}" Value="False">
+													<Setter Property="Data" Value="{StaticResource DisconnectedPathData}"/>
+												</DataTrigger>
+												<!-- MultiDataTrigger idea came from https://stackoverflow.com/a/42343062/1882616. -->
+												<MultiDataTrigger>
+													<MultiDataTrigger.Conditions>
+														<Condition Binding="{Binding IsLocationConnected}" Value="False" />
+														<Condition Binding="{Binding IsLocationUpToDate}" Value="False" />
+													</MultiDataTrigger.Conditions>
+													<!-- 75% transparent red -->
+													<Setter Property="Fill" Value="#40FF0000"/>
+												</MultiDataTrigger>
+												<MultiDataTrigger>
+													<MultiDataTrigger.Conditions>
+														<Condition Binding="{Binding IsLocationConnected}" Value="False" />
+														<Condition Binding="{Binding IsLocationUpToDate}" Value="True" />
+													</MultiDataTrigger.Conditions>
+													<Setter Property="Fill" Value="Red"/>
+												</MultiDataTrigger>
+												<MultiDataTrigger>
+													<MultiDataTrigger.Conditions>
+														<Condition Binding="{Binding IsLocationConnected}" Value="True" />
+														<Condition Binding="{Binding IsLocationUpToDate}" Value="False" />
+													</MultiDataTrigger.Conditions>
+													<!-- 75% transparent green -->
+													<Setter Property="Fill" Value="#40008000"/>
+												</MultiDataTrigger>
+												<MultiDataTrigger>
+													<MultiDataTrigger.Conditions>
+														<Condition Binding="{Binding IsLocationConnected}" Value="True" />
+														<Condition Binding="{Binding IsLocationUpToDate}" Value="True" />
+													</MultiDataTrigger.Conditions>
+													<Setter Property="Fill" Value="Green"/>
+												</MultiDataTrigger>
+											</Style.Triggers>
+										</Style>
+									</Path.Style>
+								</Path>
+							</Canvas>
+						</Viewbox>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
 				<DataGridTextColumn Header="Name" Binding="{Binding LocationName}"/>
 				<DataGridTextColumn Header="IP Address" Binding="{Binding LocationAddress}"/>
-				<DataGridCheckBoxColumn Header="Status" Binding="{Binding IsLocationConnected}"/>
-				<DataGridCheckBoxColumn Header="Current" Binding="{Binding IsLocationUpToDate}"/>
 				<DataGridTextColumn Header="Response (ms)" Binding="{Binding LocationRoundtripMilliseconds}" ElementStyle="{StaticResource RightAlignCell}"/>
 			</DataGrid.Columns>
 		</DataGrid>
