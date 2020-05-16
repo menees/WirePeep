@@ -122,11 +122,8 @@ namespace WirePeep
 			monitored = TimeSpan.FromTicks(monitored.Ticks - (monitored.Ticks % TimeSpan.TicksPerSecond));
 			this.monitoredTime.Text = monitored.ToString();
 
-#if DEBUG
-			// TODO: ApplicationInfo.IsDebugBuild: Assembly.GetEntryAssembly --> [assembly: AssemblyConfiguration("Debug")]. [Bill, 5/15/2020]
-			// In debug builds simulate a failure when ScrollLock is toggled on.
-			this.simulateFailure = Keyboard.IsKeyToggled(Key.Scroll);
-#endif
+			// Optionally, simulate a failure when ScrollLock is toggled on.
+			this.simulateFailure = this.options.ScrollLockSimulatesFailure && Keyboard.IsKeyToggled(Key.Scroll);
 		}
 
 		#endregion

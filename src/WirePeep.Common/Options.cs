@@ -26,6 +26,7 @@ namespace WirePeep
 			if (settingsNode != null)
 			{
 				this.logFolder = settingsNode.GetValue(nameof(this.LogFolder), string.Empty);
+				this.ScrollLockSimulatesFailure = settingsNode.GetValue(nameof(this.ScrollLockSimulatesFailure), ApplicationInfo.IsDebugBuild);
 			}
 
 			this.ValidateLogFolder();
@@ -49,6 +50,8 @@ namespace WirePeep
 			}
 		}
 
+		public bool ScrollLockSimulatesFailure { get; set; }
+
 		#endregion
 
 		#region Public Methods
@@ -56,6 +59,7 @@ namespace WirePeep
 		public void Save(ISettingsNode settingsNode)
 		{
 			settingsNode.SetValue(nameof(this.LogFolder), this.logFolder);
+			settingsNode.SetValue(nameof(this.ScrollLockSimulatesFailure), this.ScrollLockSimulatesFailure);
 		}
 
 		#endregion
