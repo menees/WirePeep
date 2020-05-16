@@ -8,145 +8,170 @@
 		mc:Ignorable="d"
 		Title="WirePeep - Network Downtime Monitor" Height="450" Width="800">
 
-    <Window.CommandBindings>
-        <CommandBinding Command="local:Commands.AddLocation" Executed="AddLocationExecuted" />
-        <CommandBinding Command="local:Commands.Exit" Executed="ExitExecuted" />
-        <CommandBinding Command="local:Commands.ExportLog" Executed="ExportLogExecuted" />
-        <CommandBinding Command="local:Commands.ViewOptions" Executed="ViewOptionsExecuted" />
-        <CommandBinding Command="Help" Executed="HelpExecuted" />
-        <CommandBinding Command="local:Commands.About" Executed="AboutExecuted" />
-    </Window.CommandBindings>
+	<Window.CommandBindings>
+		<CommandBinding Command="local:Commands.AddLocation" Executed="AddLocationExecuted" />
+		<CommandBinding Command="local:Commands.Exit" Executed="ExitExecuted" />
+		<CommandBinding Command="local:Commands.ExportLog" Executed="ExportLogExecuted" />
+		<CommandBinding Command="local:Commands.ViewOptions" Executed="ViewOptionsExecuted" />
+		<CommandBinding Command="Help" Executed="HelpExecuted" />
+		<CommandBinding Command="local:Commands.About" Executed="AboutExecuted" />
+	</Window.CommandBindings>
 
-    <Window.Resources>
-        <local:StatusRowCollection x:Key="StatusRows"/>
+	<Window.Resources>
+		<local:StatusRowCollection x:Key="StatusRows"/>
 
-        <CollectionViewSource x:Key="StatusRowsView" Source="{StaticResource StatusRows}">
-            <CollectionViewSource.GroupDescriptions>
-                <PropertyGroupDescription PropertyName="GroupName"/>
-            </CollectionViewSource.GroupDescriptions>
-        </CollectionViewSource>
+		<CollectionViewSource x:Key="StatusRowsView" Source="{StaticResource StatusRows}">
+			<CollectionViewSource.GroupDescriptions>
+				<PropertyGroupDescription PropertyName="GroupName"/>
+			</CollectionViewSource.GroupDescriptions>
+		</CollectionViewSource>
 
-        <Style x:Key="VCenterText" TargetType="{x:Type TextBlock}">
-            <Setter Property="VerticalAlignment" Value="Center"/>
-        </Style>
+		<Style x:Key="VCenterText" TargetType="TextBlock">
+			<Setter Property="VerticalAlignment" Value="Center"/>
+		</Style>
 
-        <Style x:Key="StatusGroupHeaderStyle" TargetType="{x:Type GroupItem}">
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type GroupItem}">
-                        <!-- I originally used an Expander control like this: https://www.c-sharpcorner.com/uploadfile/dpatra/grouping-in-datagrid-in-wpf/
+		<!-- https://materialdesignicons.com/icon/check-bold -->
+		<Geometry x:Key="ConnectedPathData">
+			M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z
+		</Geometry>
+		<!-- https://materialdesignicons.com/icon/close-thick -->
+		<Geometry x:Key="DisconnectedPathData">
+			M20 6.91L17.09 4L12 9.09L6.91 4L4 6.91L9.09 12L4 17.09L6.91 20L12 14.91L17.09 20L20 17.09L14.91 12L20 6.91Z
+		</Geometry>
+
+		<Style x:Key="StatusGroupHeaderStyle" TargetType="GroupItem">
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="GroupItem">
+						<!-- I originally used an Expander control like this: https://www.c-sharpcorner.com/uploadfile/dpatra/grouping-in-datagrid-in-wpf/
 						But it was ugly, not that useful, and would have required persisting the expanded state of each group. -->
-                        <StackPanel>
-                            <DockPanel>
-                                <!-- DataTrigger idea came from https://stackoverflow.com/a/8534694/1882616. -->
-                                <DockPanel.Style>
-                                    <Style TargetType="{x:Type DockPanel}">
+						<StackPanel>
+							<DockPanel>
+								<!-- The DataContext here is a CollectionViewGroup (based on the PropertyGroupDescription.) -->
+								<!-- DataTrigger idea came from https://stackoverflow.com/a/8534694/1882616. -->
+								<DockPanel.Style>
+									<Style TargetType="DockPanel">
 										<!-- Default to light green; switch to light red if group isn't accessible. -->
 										<Setter Property="Background" Value="#FFD2FFD2"/>
 										<Style.Triggers>
-                                            <DataTrigger Binding="{Binding Items[0].IsGroupAccessible}" Value="False">
-                                                <Setter Property="Background" Value="#FFFFA7A7"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </DockPanel.Style>
-                                <!-- The DataContext here is a CollectionViewGroup (based on the PropertyGroupDescription.) -->
-								<!-- TODO: Use image instead of CheckBox. https://stackoverflow.com/a/1668080/1882616 [Bill, 5/15/2020] -->
-                                <CheckBox Margin="4" IsChecked="{Binding Items[0].IsGroupAccessible}" IsEnabled="False"/>
-                                <TextBlock Text="{Binding Name}" FontWeight="Bold" Style="{StaticResource VCenterText}"/>
-                                <TextBlock Text="  —  Poll every " Style="{StaticResource VCenterText}"/>
-                                <TextBlock Text="{Binding Items[0].GroupPollSeconds}" Style="{StaticResource VCenterText}"/>
-                                <TextBlock Text="s.  Wait " Style="{StaticResource VCenterText}"/>
-                                <TextBlock Text="{Binding Items[0].GroupWaitMilliseconds}" Style="{StaticResource VCenterText}"/>
-                                <TextBlock Text="ms.  Fail after " Style="{StaticResource VCenterText}"/>
-                                <TextBlock Text="{Binding Items[0].GroupFailSeconds}" Style="{StaticResource VCenterText}"/>
-                                <TextBlock Text="s outage." Style="{StaticResource VCenterText}"/>
-                            </DockPanel>
-                            <ItemsPresenter />
-                        </StackPanel>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
+											<DataTrigger Binding="{Binding Items[0].IsGroupAccessible}" Value="False">
+												<Setter Property="Background" Value="#FFFFD2D2"/>
+											</DataTrigger>
+										</Style.Triggers>
+									</Style>
+								</DockPanel.Style>
+								<Viewbox>
+									<Canvas Width="24" Height="24">
+										<Path>
+											<Path.Style>
+												<Style TargetType="Path">
+													<Setter Property="Fill" Value="Green"/>
+													<Setter Property="Data" Value="{StaticResource ConnectedPathData}"/>
+													<Style.Triggers>
+														<DataTrigger Binding="{Binding Items[0].IsGroupAccessible}" Value="False">
+															<Setter Property="Fill" Value="Red"/>
+															<Setter Property="Data" Value="{StaticResource DisconnectedPathData}"/>
+														</DataTrigger>
+													</Style.Triggers>
+												</Style>
+											</Path.Style>
+										</Path>
+									</Canvas>
+								</Viewbox>
+								<TextBlock Text="{Binding Name}" FontWeight="Bold" Style="{StaticResource VCenterText}"/>
+								<TextBlock Text="  —  Poll every " Style="{StaticResource VCenterText}"/>
+								<TextBlock Text="{Binding Items[0].GroupPollSeconds}" Style="{StaticResource VCenterText}"/>
+								<TextBlock Text="s.  Wait " Style="{StaticResource VCenterText}"/>
+								<TextBlock Text="{Binding Items[0].GroupWaitMilliseconds}" Style="{StaticResource VCenterText}"/>
+								<TextBlock Text="ms.  Fail after " Style="{StaticResource VCenterText}"/>
+								<TextBlock Text="{Binding Items[0].GroupFailSeconds}" Style="{StaticResource VCenterText}"/>
+								<TextBlock Text="s outage." Style="{StaticResource VCenterText}"/>
+							</DockPanel>
+							<ItemsPresenter />
+						</StackPanel>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
 
-        <Style TargetType="{x:Type TextBlock}" x:Key="RightAlignCell">
-            <Setter Property="HorizontalAlignment" Value="Stretch"/>
-            <Setter Property="TextAlignment" Value="Right"/>
-        </Style>
-    </Window.Resources>
+		<Style TargetType="TextBlock" x:Key="RightAlignCell">
+			<Setter Property="HorizontalAlignment" Value="Stretch"/>
+			<Setter Property="TextAlignment" Value="Right"/>
+		</Style>
+	</Window.Resources>
 
-    <Grid x:Name="windowLayoutGrid">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition MinHeight="25"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition MinHeight="25"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+	<Grid x:Name="windowLayoutGrid">
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition MinHeight="25"/>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition MinHeight="25"/>
+			<RowDefinition Height="Auto"/>
+		</Grid.RowDefinitions>
 
-        <Menu Grid.Row="0" Padding="2">
-            <MenuItem Header="_View">
-                <MenuItem Header="_Add Location..." Command="local:Commands.AddLocation"/>
-                <MenuItem Header="_Export Log..." Command="local:Commands.ExportLog"/>
-                <Separator/>
-                <MenuItem Header="_Options..." Command="local:Commands.ViewOptions"/>
-                <Separator/>
-                <MenuItem Header="E_xit" Command="local:Commands.Exit"/>
-            </MenuItem>
-            <MenuItem Header="_Help">
-                <MenuItem Header="_WirePeep.com" Command="Help"/>
-                <MenuItem Header="_About..." Command="local:Commands.About"/>
-            </MenuItem>
-        </Menu>
+		<Menu Grid.Row="0" Padding="2">
+			<MenuItem Header="_View">
+				<MenuItem Header="_Add Location..." Command="local:Commands.AddLocation"/>
+				<MenuItem Header="_Export Log..." Command="local:Commands.ExportLog"/>
+				<Separator/>
+				<MenuItem Header="_Options..." Command="local:Commands.ViewOptions"/>
+				<Separator/>
+				<MenuItem Header="E_xit" Command="local:Commands.Exit"/>
+			</MenuItem>
+			<MenuItem Header="_Help">
+				<MenuItem Header="_WirePeep.com" Command="Help"/>
+				<MenuItem Header="_About..." Command="local:Commands.About"/>
+			</MenuItem>
+		</Menu>
 
-        <DataGrid x:Name="statusGrid" ItemsSource="{Binding Source={StaticResource StatusRowsView}}"
+		<DataGrid x:Name="statusGrid" ItemsSource="{Binding Source={StaticResource StatusRowsView}}"
 				  IsReadOnly="True" Grid.Row="1" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" CanUserReorderColumns="False" CanUserSortColumns="False" GridLinesVisibility="None" AutoGenerateColumns="False" CanUserResizeRows="False" HeadersVisibility="Column">
-            <DataGrid.GroupStyle>
-                <GroupStyle ContainerStyle="{StaticResource StatusGroupHeaderStyle}">
-                    <GroupStyle.Panel>
-                        <ItemsPanelTemplate>
-                            <DataGridRowsPresenter/>
-                        </ItemsPanelTemplate>
-                    </GroupStyle.Panel>
-                </GroupStyle>
-            </DataGrid.GroupStyle>
+			<DataGrid.GroupStyle>
+				<GroupStyle ContainerStyle="{StaticResource StatusGroupHeaderStyle}">
+					<GroupStyle.Panel>
+						<ItemsPanelTemplate>
+							<DataGridRowsPresenter/>
+						</ItemsPanelTemplate>
+					</GroupStyle.Panel>
+				</GroupStyle>
+			</DataGrid.GroupStyle>
 
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Name" Binding="{Binding LocationName}"/>
-                <DataGridTextColumn Header="IP Address" Binding="{Binding LocationAddress}"/>
-                <DataGridCheckBoxColumn Header="Status" Binding="{Binding IsLocationConnected}"/>
-                <DataGridCheckBoxColumn Header="Current" Binding="{Binding IsLocationUpToDate}"/>
-                <DataGridTextColumn Header="Response (ms)" Binding="{Binding LocationRoundtripMilliseconds}" ElementStyle="{StaticResource RightAlignCell}"/>
-            </DataGrid.Columns>
-        </DataGrid>
+			<DataGrid.Columns>
+				<DataGridTextColumn Header="Name" Binding="{Binding LocationName}"/>
+				<DataGridTextColumn Header="IP Address" Binding="{Binding LocationAddress}"/>
+				<DataGridCheckBoxColumn Header="Status" Binding="{Binding IsLocationConnected}"/>
+				<DataGridCheckBoxColumn Header="Current" Binding="{Binding IsLocationUpToDate}"/>
+				<DataGridTextColumn Header="Response (ms)" Binding="{Binding LocationRoundtripMilliseconds}" ElementStyle="{StaticResource RightAlignCell}"/>
+			</DataGrid.Columns>
+		</DataGrid>
 
-        <GridSplitter x:Name="splitter" Grid.Row="2" HorizontalAlignment="Stretch" VerticalAlignment="Center" ShowsPreview="True" Height="4" />
+		<GridSplitter x:Name="splitter" Grid.Row="2" HorizontalAlignment="Stretch" VerticalAlignment="Center" ShowsPreview="True" Height="4" />
 
-        <DataGrid x:Name="logGrid" IsReadOnly="True" Grid.Row="3" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" CanUserSortColumns="False" CanUserReorderColumns="False" GridLinesVisibility="None" AutoGenerateColumns="False" CanUserResizeRows="False" HeadersVisibility="Column">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Peer Group"/>
-                <DataGridTextColumn Header="Start"/>
-                <DataGridTextColumn Header="Length"/>
-                <DataGridTextColumn Header="End"/>
-                <DataGridTextColumn Header="Since Previous"/>
-                <DataGridTextColumn Header="Comment"/>
-            </DataGrid.Columns>
-        </DataGrid>
+		<DataGrid x:Name="logGrid" IsReadOnly="True" Grid.Row="3" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" CanUserSortColumns="False" CanUserReorderColumns="False" GridLinesVisibility="None" AutoGenerateColumns="False" CanUserResizeRows="False" HeadersVisibility="Column">
+			<DataGrid.Columns>
+				<DataGridTextColumn Header="Peer Group"/>
+				<DataGridTextColumn Header="Start"/>
+				<DataGridTextColumn Header="Length"/>
+				<DataGridTextColumn Header="End"/>
+				<DataGridTextColumn Header="Since Previous"/>
+				<DataGridTextColumn Header="Comment"/>
+			</DataGrid.Columns>
+		</DataGrid>
 
-        <StatusBar Grid.Row="4">
-            <StatusBarItem>
-                <TextBlock>Monitored time:</TextBlock>
-            </StatusBarItem>
-            <StatusBarItem>
-                <TextBlock x:Name="monitoredTime">0:00:00</TextBlock>
-            </StatusBarItem>
-            <Separator/>
-            <StatusBarItem>
-                <TextBlock>Failure count:</TextBlock>
-            </StatusBarItem>
-            <StatusBarItem>
-                <TextBlock x:Name="failureCount">0</TextBlock>
-            </StatusBarItem>
-        </StatusBar>
-    </Grid>
+		<StatusBar Grid.Row="4">
+			<StatusBarItem>
+				<TextBlock>Monitored time:</TextBlock>
+			</StatusBarItem>
+			<StatusBarItem>
+				<TextBlock x:Name="monitoredTime">0:00:00</TextBlock>
+			</StatusBarItem>
+			<Separator/>
+			<StatusBarItem>
+				<TextBlock>Failure count:</TextBlock>
+			</StatusBarItem>
+			<StatusBarItem>
+				<TextBlock x:Name="failureCount">0</TextBlock>
+			</StatusBarItem>
+		</StatusBar>
+	</Grid>
 </m:ExtendedWindow>
