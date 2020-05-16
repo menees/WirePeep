@@ -39,9 +39,11 @@ namespace WirePeep
 
 		#region Public Properties
 
-		public DateTime Started { get; } = DateTime.UtcNow;
+		public DateTime Started { get; private set; }
 
-		public TimeSpan Monitored => DateTime.UtcNow - this.Started;
+		public DateTime LastUpdated { get; private set; }
+
+		public TimeSpan Monitored => this.LastUpdated - this.Started;
 
 		public ObservableCollection<PeerGroupState> PeerGroups { get; } = new ObservableCollection<PeerGroupState>();
 
@@ -59,8 +61,14 @@ namespace WirePeep
 				mapCopy = new Dictionary<PeerGroupState, List<LocationState>>(this.peerGroupToLocationsMap);
 			}
 
+			DateTime utcNow = DateTime.UtcNow;
+			if (this.Started == DateTime.MinValue)
+			{
+				this.Started = utcNow;
+			}
+
 			ParallelOptions options = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount / 2 };
-			Parallel.ForEach(mapCopy, options, pair => pair.Key.Update(pair.Value, simulateFailure));
+			Parallel.ForEach(mapCopy, options, pair => pair.Key.Update(utcNow, pair.Value, simulateFailure));
 
 			var result = new Dictionary<PeerGroupState, IReadOnlyList<LocationState>>(mapCopy.Count);
 			foreach (var pair in mapCopy)
@@ -74,6 +82,7 @@ namespace WirePeep
 				result.Add(publicPeerGroup, publicLocations);
 			}
 
+			this.LastUpdated = utcNow;
 			return result;
 		}
 

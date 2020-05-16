@@ -18,7 +18,7 @@ namespace WirePeep
 
 		#region Constructors
 
-		public LocationState(Location location)
+		internal LocationState(Location location)
 		{
 			this.Location = location;
 		}
@@ -39,13 +39,14 @@ namespace WirePeep
 
 		#region Public Methods
 
-		public bool? Update(long counter, bool simulateFailure)
+		public override string ToString() => this.Location.ToString();
+
+		public bool? Update(DateTime utcNow, long counter, bool simulateFailure)
 		{
 			bool? result = null;
 
-			DateTime utcNow = DateTime.UtcNow;
 			PeerGroup peerGroup = this.Location.PeerGroup;
-			if (utcNow - this.lastPolled > peerGroup.Poll)
+			if (peerGroup.CanPoll(utcNow, this.lastPolled))
 			{
 				bool? wasConnected = this.IsConnected;
 
