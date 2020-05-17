@@ -253,7 +253,7 @@
 				<TextBlock>Failure count:</TextBlock>
 			</StatusBarItem>
 			<StatusBarItem>
-				<TextBlock x:Name="failureCount" >0</TextBlock>
+				<TextBlock Text="{Binding Source={StaticResource LogRows}, Path=Count}"/>
 			</StatusBarItem>
 		</StatusBar>
 	</Grid>

@@ -110,9 +110,6 @@ namespace WirePeep
 			monitored = TruncateToSeconds(monitored);
 			this.monitoredTime.Text = monitored.ToString();
 
-			// TODO: Is there a way to bind to this in XAML? [Bill, 5/16/2020]
-			this.failureCount.Text = this.logRows.Count.ToString();
-
 			// Optionally, simulate a failure when ScrollLock is toggled on.
 			this.simulateFailure = this.options.ScrollLockSimulatesFailure && Keyboard.IsKeyToggled(Key.Scroll);
 		}
