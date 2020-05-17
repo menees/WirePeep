@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Menees;
+using Menees.Windows.Presentation;
 
 #endregion
 
@@ -52,7 +54,7 @@ namespace WirePeep
 				this.IsActive = true;
 			}
 
-			this.Length = MainWindow.TruncateToSeconds(peerGroupState.LastUpdateRequest - this.FailStarted);
+			this.Length = ConvertUtility.TruncateToSeconds(peerGroupState.LastUpdateRequest - this.FailStarted);
 
 			if (!peerGroupState.IsFailed)
 			{
@@ -62,7 +64,7 @@ namespace WirePeep
 
 			if (previousLogRow?.FailEnded != null)
 			{
-				this.SincePrevious = MainWindow.TruncateToSeconds(this.FailStarted - previousLogRow.FailEnded.Value);
+				this.SincePrevious = ConvertUtility.TruncateToSeconds(this.FailStarted - previousLogRow.FailEnded.Value);
 			}
 		}
 

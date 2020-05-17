@@ -91,13 +91,6 @@ namespace WirePeep
 
 		#endregion
 
-		#region Internal Methods
-
-		// TODO: Move to ConvertUtility. [Bill, 5/16/2020]
-		internal static TimeSpan TruncateToSeconds(TimeSpan value) => TimeSpan.FromTicks(value.Ticks - (value.Ticks % TimeSpan.TicksPerSecond));
-
-		#endregion
-
 		#region Private Methods
 
 		private void UpdateStates(IDictionary<PeerGroupState, IReadOnlyList<LocationState>> states)
@@ -107,7 +100,7 @@ namespace WirePeep
 
 			// This isn't a dependency property, so we can't bind to it. We have to manually update it.
 			TimeSpan monitored = this.stateManager.Monitored;
-			monitored = TruncateToSeconds(monitored);
+			monitored = ConvertUtility.TruncateToSeconds(monitored);
 			this.monitoredTime.Text = monitored.ToString();
 
 			// Optionally, simulate a failure when ScrollLock is toggled on.

@@ -173,8 +173,8 @@
 														<Condition Binding="{Binding IsLocationConnected}" Value="False" />
 														<Condition Binding="{Binding IsLocationUpToDate}" Value="False" />
 													</MultiDataTrigger.Conditions>
-													<!-- 75% transparent red -->
-													<Setter Property="Fill" Value="#40FF0000"/>
+													<!-- 87% transparent red -->
+													<Setter Property="Fill" Value="#20FF0000"/>
 												</MultiDataTrigger>
 												<MultiDataTrigger>
 													<MultiDataTrigger.Conditions>
@@ -188,8 +188,8 @@
 														<Condition Binding="{Binding IsLocationConnected}" Value="True" />
 														<Condition Binding="{Binding IsLocationUpToDate}" Value="False" />
 													</MultiDataTrigger.Conditions>
-													<!-- 75% transparent green -->
-													<Setter Property="Fill" Value="#40008000"/>
+													<!-- 87% transparent green -->
+													<Setter Property="Fill" Value="#20008000"/>
 												</MultiDataTrigger>
 												<MultiDataTrigger>
 													<MultiDataTrigger.Conditions>
