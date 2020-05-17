@@ -31,15 +31,15 @@ namespace WirePeep
 			typeof(Commands),
 			new InputGestureCollection { new KeyGesture(Key.F4, ModifierKeys.Alt), });
 
-		public static readonly RoutedUICommand EditLocation = new RoutedUICommand(
-			"Edit Location",
-			nameof(EditLocation),
+		public static readonly RoutedUICommand EditItem = new RoutedUICommand(
+			"Edit Item",
+			nameof(EditItem),
 			typeof(Commands),
 			new InputGestureCollection { new KeyGesture(Key.F4), });
 
-		public static readonly RoutedUICommand DeleteLocation = new RoutedUICommand(
-			"Delete Location",
-			nameof(DeleteLocation),
+		public static readonly RoutedUICommand DeleteItem = new RoutedUICommand(
+			"Delete Item",
+			nameof(DeleteItem),
 			typeof(Commands),
 			new InputGestureCollection { new KeyGesture(Key.Delete), });
 
@@ -54,12 +54,6 @@ namespace WirePeep
 			nameof(CopyRow),
 			typeof(Commands),
 			new InputGestureCollection { new KeyGesture(Key.C, ModifierKeys.Control | ModifierKeys.Shift), });
-
-		public static readonly RoutedUICommand EditComment = new RoutedUICommand(
-			"Edit Comment",
-			nameof(EditComment),
-			typeof(Commands),
-			new InputGestureCollection { new KeyGesture(Key.F2, ModifierKeys.Control), });
 
 		#endregion
 	}

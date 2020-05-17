@@ -15,11 +15,10 @@
         <CommandBinding Command="local:Commands.ViewOptions" Executed="ViewOptionsExecuted" />
         <CommandBinding Command="Help" Executed="HelpExecuted" />
         <CommandBinding Command="local:Commands.About" Executed="AboutExecuted" />
-        <CommandBinding Command="local:Commands.EditLocation" Executed="EditLocationExecuted" CanExecute="EditLocationCanExecute"/>
-        <CommandBinding Command="local:Commands.DeleteLocation" Executed="DeleteLocationExecuted" CanExecute="DeleteLocationCanExecute"/>
+        <CommandBinding Command="local:Commands.EditItem" Executed="EditItemExecuted" CanExecute="EditItemCanExecute"/>
+        <CommandBinding Command="local:Commands.DeleteItem" Executed="DeleteItemExecuted" CanExecute="DeleteItemCanExecute"/>
         <CommandBinding Command="local:Commands.CopyValue" Executed="CopyValueExecuted" CanExecute="CopyCanExecute"/>
         <CommandBinding Command="local:Commands.CopyRow" Executed="CopyRowExecuted" CanExecute="CopyCanExecute"/>
-        <CommandBinding Command="local:Commands.EditComment" Executed="EditCommentExecuted" CanExecute="EditCommentCanExecute"/>
     </Window.CommandBindings>
 
     <Window.Resources>
@@ -48,7 +47,8 @@
             <Setter Property="CanUserResizeRows" Value="False"/>
             <Setter Property="HeadersVisibility" Value="Column"/>
             <Setter Property="ClipboardCopyMode" Value="None"/>
-        </Style>
+			<Setter Property="SelectionMode" Value="Single"/>
+		</Style>
 
         <!-- Note: These geometries assume they're drawn in a 24x24 Canvas. Wrap the Canvas in a ViewBox to scale it up or down. -->
         <!-- https://materialdesignicons.com/icon/check-bold -->
@@ -145,7 +145,7 @@
             </MenuItem>
         </Menu>
 
-		<DataGrid x:Name="statusGrid" Grid.Row="1" ItemsSource="{Binding Source={StaticResource StatusRowsView}}" Style="{StaticResource ListViewGrid}">
+		<DataGrid x:Name="statusGrid" Grid.Row="1" ItemsSource="{Binding Source={StaticResource StatusRowsView}}" Style="{StaticResource ListViewGrid}" GotFocus="StatusGridGotFocus" ContextMenuOpening="StatusGridContextMenuOpening">
             <DataGrid.GroupStyle>
                 <GroupStyle ContainerStyle="{StaticResource StatusGroupHeaderStyle}">
                     <GroupStyle.Panel>
@@ -220,18 +220,25 @@
 
             <DataGrid.ContextMenu>
                 <ContextMenu>
-                    <MenuItem Header="_Edit Location..." Command="local:Commands.EditLocation"/>
-                    <MenuItem Header="_Delete Location..." Command="local:Commands.DeleteLocation"/>
+                    <MenuItem Header="_Edit Location..." Command="local:Commands.EditItem"/>
+                    <MenuItem Header="_Delete Location..." Command="local:Commands.DeleteItem"/>
                     <Separator/>
                     <MenuItem Header="Copy _Value" Command="local:Commands.CopyValue"/>
                     <MenuItem Header="Copy _Row" Command="local:Commands.CopyRow"/>
                 </ContextMenu>
             </DataGrid.ContextMenu>
+
+			<DataGrid.InputBindings>
+				<!-- DataGrid tries to use Ctrl+C itself (for its ClipboardCopyMode) unless we unbind it. We want it for our CopyValue command. -->
+				<KeyBinding Key="C" Modifiers="Ctrl" Command="NotACommand"/>
+				<!-- DataGrid tries to use Delete itself unless we unbind it. We want it for our DeleteLocation command. -->
+				<KeyBinding Key="Delete" Command="NotACommand"/>
+			</DataGrid.InputBindings>
         </DataGrid>
 
         <GridSplitter x:Name="splitter" Grid.Row="2" HorizontalAlignment="Stretch" VerticalAlignment="Center" ShowsPreview="True" Height="4" />
 
-        <DataGrid x:Name="logGrid" Grid.Row="3" ItemsSource="{Binding Source={StaticResource LogRowsView}}" Style="{StaticResource ListViewGrid}" SelectedCellsChanged="LogGridSelectedCellsChanged">
+        <DataGrid x:Name="logGrid" Grid.Row="3" ItemsSource="{Binding Source={StaticResource LogRowsView}}" Style="{StaticResource ListViewGrid}" SelectedCellsChanged="LogGridSelectedCellsChanged" GotFocus="LogGridGotFocus" ContextMenuOpening="LogGridContextMenuOpening">
             <DataGrid.Resources>
                 <Style TargetType="TextBlock" x:Key="RedIfActive">
                     <Setter Property="Margin" Value="2,0,2,0"/>
@@ -251,6 +258,7 @@
                     <Setter Property="TextAlignment" Value="Right"/>
                 </Style>
             </DataGrid.Resources>
+
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Peer Group" Binding="{Binding PeerGroupName}" ElementStyle="{StaticResource RedIfActive}"/>
                 <DataGridTextColumn Header="Start" Binding="{Binding FailStarted}" ElementStyle="{StaticResource RedIfActive}"/>
@@ -259,9 +267,10 @@
                 <DataGridTextColumn Header="Since Previous" Binding="{Binding SincePrevious}" ElementStyle="{StaticResource RedIfActive-RightAlign}"/>
                 <DataGridTextColumn Header="Comment" Binding="{Binding Comment}" ElementStyle="{StaticResource RedIfActive}"/>
             </DataGrid.Columns>
+
             <DataGrid.ContextMenu>
                 <ContextMenu>
-                    <MenuItem Header="Edit _Comment..." Command="local:Commands.EditComment"/>
+                    <MenuItem Header="Edit _Comment..." Command="local:Commands.EditItem"/>
                     <Separator/>
                     <MenuItem Header="Copy _Value" Command="local:Commands.CopyValue"/>
                     <MenuItem Header="Copy _Row" Command="local:Commands.CopyRow"/>
@@ -269,7 +278,12 @@
                     <MenuItem Header="_Export Log..." Command="local:Commands.ExportLog"/>
                 </ContextMenu>
             </DataGrid.ContextMenu>
-        </DataGrid>
+
+			<DataGrid.InputBindings>
+				<!-- DataGrid tries to use Ctrl+C itself (for its ClipboardCopyMode) unless we unbind it. We want it for our CopyValue command. -->
+				<KeyBinding Key="C" Modifiers="Ctrl" Command="NotACommand"/>
+			</DataGrid.InputBindings>
+		</DataGrid>
 
         <StatusBar Grid.Row="4">
             <StatusBarItem>

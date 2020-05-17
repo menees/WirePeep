@@ -41,6 +41,7 @@ namespace WirePeep
 		private bool closing;
 		private bool simulateFailure = Convert.ToBoolean(0);
 		private Dictionary<string, StatusRow> statusRowMap;
+		private DataGrid selectedGrid;
 
 		#endregion
 
@@ -80,7 +81,7 @@ namespace WirePeep
 			}
 		}
 
-		private DataGrid SelectedGrid => this.logGrid.IsFocused ? this.logGrid : this.statusGrid;
+		private DataGrid SelectedGrid => this.selectedGrid ?? this.statusGrid;
 
 		private LogRow SelectedLogRow => (LogRow)this.logGrid.SelectedItem;
 
@@ -98,6 +99,29 @@ namespace WirePeep
 		#endregion
 
 		#region Private Methods
+
+		private static void CopyToClipboard(DataGrid source, bool copyRow)
+		{
+			IList<DataGridCellInfo> copyCells = copyRow ? source.SelectedCells : new[] { source.CurrentCell };
+			StringBuilder sb = new StringBuilder();
+			foreach (DataGridCellInfo cell in copyCells)
+			{
+				if (sb.Length > 0)
+				{
+					sb.Append('\t');
+				}
+
+				// For non-text columns (e.g., the "Poll" template column), there's no consistent way to get the
+				// element's content as text. So we'll just pretend we don't see those columns.
+				FrameworkElement element = cell.Column.GetCellContent(cell.Item);
+				if (element is TextBlock textBlock)
+				{
+					sb.Append(textBlock.Text);
+				}
+			}
+
+			Clipboard.SetText(sb.ToString());
+		}
 
 		private void UpdateStates(IDictionary<PeerGroupState, IReadOnlyList<LocationState>> states)
 		{
@@ -290,51 +314,40 @@ namespace WirePeep
 			}
 		}
 
-		private void EditLocationCanExecute(object sender, CanExecuteRoutedEventArgs e) => e.CanExecute = this.SelectedStatusRow != null;
+		private void EditItemCanExecute(object sender, CanExecuteRoutedEventArgs e) => e.CanExecute = this.SelectedGrid?.SelectedItem != null;
 
-		private void EditLocationExecuted(object sender, ExecutedRoutedEventArgs e)
+		private void EditItemExecuted(object sender, ExecutedRoutedEventArgs e)
 		{
-			// TODO: Finish EditLocationExecuted. [Bill, 5/17/2020]
-			MessageBox.Show(nameof(this.EditLocationExecuted) + " for " + this.SelectedStatusRow.LocationName);
+			// TODO: Finish EditItemExecuted. [Bill, 5/17/2020]
+			if (this.SelectedGrid == this.logGrid)
+			{
+				MessageBox.Show(nameof(this.EditItemExecuted) + " for " + this.SelectedLogRow.PeerGroupName);
+			}
+			else
+			{
+				MessageBox.Show(nameof(this.EditItemExecuted) + " for " + this.SelectedStatusRow.LocationName);
+			}
+		}
+
+		private void DeleteItemCanExecute(object sender, CanExecuteRoutedEventArgs e) => e.CanExecute = this.SelectedStatusRow != null;
+
+		private void DeleteItemExecuted(object sender, ExecutedRoutedEventArgs e)
+		{
+			// TODO: Finish DeleteItemExecuted. [Bill, 5/17/2020]
+			MessageBox.Show(nameof(this.DeleteItemExecuted) + " for " + this.SelectedStatusRow.LocationName);
 			this.GetHashCode();
 		}
 
-		private void DeleteLocationCanExecute(object sender, CanExecuteRoutedEventArgs e) => e.CanExecute = this.SelectedStatusRow != null;
-
-		private void DeleteLocationExecuted(object sender, ExecutedRoutedEventArgs e)
-		{
-			// TODO: Finish DeleteLocationExecuted. [Bill, 5/17/2020]
-			MessageBox.Show(nameof(this.DeleteLocationExecuted) + " for " + this.SelectedStatusRow.LocationName);
-			this.GetHashCode();
-		}
-
-		private void CopyCanExecute(object sender, CanExecuteRoutedEventArgs e)
-		{
-			// TODO: This won't work unless right-click selects first. [Bill, 5/17/2020]
-			e.CanExecute = this.SelectedGrid?.SelectedItem != null;
-		}
+		private void CopyCanExecute(object sender, CanExecuteRoutedEventArgs e) => e.CanExecute = this.SelectedGrid?.SelectedItem != null;
 
 		private void CopyValueExecuted(object sender, ExecutedRoutedEventArgs e)
 		{
-			// TODO: Finish CopyValueExecuted. [Bill, 5/17/2020]
-			MessageBox.Show(nameof(this.CopyValueExecuted));
-			this.GetHashCode();
+			CopyToClipboard(this.SelectedGrid, false);
 		}
 
 		private void CopyRowExecuted(object sender, ExecutedRoutedEventArgs e)
 		{
-			// TODO: Finish CopyRowExecuted. [Bill, 5/17/2020]
-			MessageBox.Show(nameof(this.CopyRowExecuted));
-			this.GetHashCode();
-		}
-
-		private void EditCommentCanExecute(object sender, CanExecuteRoutedEventArgs e) => e.CanExecute = this.SelectedLogRow != null;
-
-		private void EditCommentExecuted(object sender, ExecutedRoutedEventArgs e)
-		{
-			// TODO: Finish AddCommentExecuted. [Bill, 5/17/2020]
-			MessageBox.Show(nameof(this.EditCommentExecuted) + " for " + this.SelectedLogRow.PeerGroupName);
-			this.GetHashCode();
+			CopyToClipboard(this.SelectedGrid, true);
 		}
 
 		private void LogGridSelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
@@ -351,6 +364,20 @@ namespace WirePeep
 				}
 			}
 		}
+
+		private void LogGridGotFocus(object sender, RoutedEventArgs e)
+		{
+			this.selectedGrid = this.logGrid;
+		}
+
+		private void StatusGridGotFocus(object sender, RoutedEventArgs e)
+		{
+			this.selectedGrid = this.statusGrid;
+		}
+
+		private void LogGridContextMenuOpening(object sender, ContextMenuEventArgs e) => this.LogGridGotFocus(sender, e);
+
+		private void StatusGridContextMenuOpening(object sender, ContextMenuEventArgs e) => this.StatusGridGotFocus(sender, e);
 
 		#endregion
 	}
