@@ -31,6 +31,36 @@ namespace WirePeep
 			typeof(Commands),
 			new InputGestureCollection { new KeyGesture(Key.F4, ModifierKeys.Alt), });
 
+		public static readonly RoutedUICommand EditLocation = new RoutedUICommand(
+			"Edit Location",
+			nameof(EditLocation),
+			typeof(Commands),
+			new InputGestureCollection { new KeyGesture(Key.F4), });
+
+		public static readonly RoutedUICommand DeleteLocation = new RoutedUICommand(
+			"Delete Location",
+			nameof(DeleteLocation),
+			typeof(Commands),
+			new InputGestureCollection { new KeyGesture(Key.Delete), });
+
+		public static readonly RoutedUICommand CopyValue = new RoutedUICommand(
+			"Copy Value",
+			nameof(CopyValue),
+			typeof(Commands),
+			new InputGestureCollection { new KeyGesture(Key.C, ModifierKeys.Control), });
+
+		public static readonly RoutedUICommand CopyRow = new RoutedUICommand(
+			"Copy Row",
+			nameof(CopyRow),
+			typeof(Commands),
+			new InputGestureCollection { new KeyGesture(Key.C, ModifierKeys.Control | ModifierKeys.Shift), });
+
+		public static readonly RoutedUICommand EditComment = new RoutedUICommand(
+			"Edit Comment",
+			nameof(EditComment),
+			typeof(Commands),
+			new InputGestureCollection { new KeyGesture(Key.F2, ModifierKeys.Control), });
+
 		#endregion
 	}
 }

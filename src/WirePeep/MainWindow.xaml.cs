@@ -80,6 +80,12 @@ namespace WirePeep
 			}
 		}
 
+		private DataGrid SelectedGrid => this.logGrid.IsFocused ? this.logGrid : this.statusGrid;
+
+		private LogRow SelectedLogRow => (LogRow)this.logGrid.SelectedItem;
+
+		private StatusRow SelectedStatusRow => (StatusRow)this.statusGrid.SelectedItem;
+
 		#endregion
 
 		#region Public Methods
@@ -253,6 +259,8 @@ namespace WirePeep
 			this.GetHashCode();
 		}
 
+		private void ExportLogCanExecute(object sender, CanExecuteRoutedEventArgs e) => e.CanExecute = this.logRows.Count > 0;
+
 		private void ExportLogExecuted(object sender, ExecutedRoutedEventArgs e)
 		{
 			// TODO: Finish ExportLogExecuted. [Bill, 5/7/2020]
@@ -278,6 +286,68 @@ namespace WirePeep
 				finally
 				{
 					Interlocked.Exchange(ref this.updatingLock, 0);
+				}
+			}
+		}
+
+		private void EditLocationCanExecute(object sender, CanExecuteRoutedEventArgs e) => e.CanExecute = this.SelectedStatusRow != null;
+
+		private void EditLocationExecuted(object sender, ExecutedRoutedEventArgs e)
+		{
+			// TODO: Finish EditLocationExecuted. [Bill, 5/17/2020]
+			MessageBox.Show(nameof(this.EditLocationExecuted) + " for " + this.SelectedStatusRow.LocationName);
+			this.GetHashCode();
+		}
+
+		private void DeleteLocationCanExecute(object sender, CanExecuteRoutedEventArgs e) => e.CanExecute = this.SelectedStatusRow != null;
+
+		private void DeleteLocationExecuted(object sender, ExecutedRoutedEventArgs e)
+		{
+			// TODO: Finish DeleteLocationExecuted. [Bill, 5/17/2020]
+			MessageBox.Show(nameof(this.DeleteLocationExecuted) + " for " + this.SelectedStatusRow.LocationName);
+			this.GetHashCode();
+		}
+
+		private void CopyCanExecute(object sender, CanExecuteRoutedEventArgs e)
+		{
+			// TODO: This won't work unless right-click selects first. [Bill, 5/17/2020]
+			e.CanExecute = this.SelectedGrid?.SelectedItem != null;
+		}
+
+		private void CopyValueExecuted(object sender, ExecutedRoutedEventArgs e)
+		{
+			// TODO: Finish CopyValueExecuted. [Bill, 5/17/2020]
+			MessageBox.Show(nameof(this.CopyValueExecuted));
+			this.GetHashCode();
+		}
+
+		private void CopyRowExecuted(object sender, ExecutedRoutedEventArgs e)
+		{
+			// TODO: Finish CopyRowExecuted. [Bill, 5/17/2020]
+			MessageBox.Show(nameof(this.CopyRowExecuted));
+			this.GetHashCode();
+		}
+
+		private void EditCommentCanExecute(object sender, CanExecuteRoutedEventArgs e) => e.CanExecute = this.SelectedLogRow != null;
+
+		private void EditCommentExecuted(object sender, ExecutedRoutedEventArgs e)
+		{
+			// TODO: Finish AddCommentExecuted. [Bill, 5/17/2020]
+			MessageBox.Show(nameof(this.EditCommentExecuted) + " for " + this.SelectedLogRow.PeerGroupName);
+			this.GetHashCode();
+		}
+
+		private void LogGridSelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
+		{
+			object current = e.AddedCells.Select(cell => cell.Item).FirstOrDefault();
+			object previous = e.RemovedCells.Select(cell => cell.Item).FirstOrDefault();
+
+			if (!ReferenceEquals(current, previous))
+			{
+				LogRow selectedLogRow = this.SelectedLogRow;
+				foreach (LogRow logRow in this.logRows)
+				{
+					logRow.IsSelected = ReferenceEquals(logRow, selectedLogRow);
 				}
 			}
 		}

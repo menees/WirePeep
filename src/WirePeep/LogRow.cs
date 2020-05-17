@@ -21,6 +21,7 @@ namespace WirePeep
 		private TimeSpan? sincePrevious;
 		private string comment;
 		private bool isActive;
+		private bool isSelected;
 
 		#endregion
 
@@ -39,6 +40,8 @@ namespace WirePeep
 		public string Comment { get => this.comment; set => this.Update(ref this.comment, value); }
 
 		public bool IsActive { get => this.isActive; set => this.Update(ref this.isActive, value); }
+
+		public bool IsSelected { get => this.isSelected; set => this.Update(ref this.isSelected, value); }
 
 		#endregion
 
