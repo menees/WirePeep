@@ -47,14 +47,56 @@ namespace WirePeep
 
 		public void Save(ISettingsNode settingsNode)
 		{
-			// TODO: Save configuration. [Bill, 5/7/2020]
-			this.GetHashCode();
-			settingsNode.GetHashCode();
+			settingsNode.DeleteSubNode(nameof(this.PeerGroups));
+			ISettingsNode peerGroupsNode = settingsNode.GetSubNode(nameof(this.PeerGroups), true);
+			foreach (PeerGroup peerGroup in this.PeerGroups)
+			{
+				peerGroup.Save(peerGroupsNode.GetSubNode(peerGroup.Id.ToString(), true));
+			}
+
+			settingsNode.DeleteSubNode(nameof(this.Locations));
+			ISettingsNode locationsNode = settingsNode.GetSubNode(nameof(this.Locations), true);
+			foreach (Location location in this.Locations)
+			{
+				location.Save(locationsNode.GetSubNode(location.Id.ToString(), true));
+			}
 		}
 
 		#endregion
 
 		#region Private Methods
+
+		private void Load(ISettingsNode settingsNode)
+		{
+			ISettingsNode peerGroupsNode = settingsNode.GetSubNode(nameof(this.PeerGroups), false);
+			if (peerGroupsNode != null)
+			{
+				foreach (string subNodeName in peerGroupsNode.GetSubNodeNames())
+				{
+					ISettingsNode peerGroupNode = peerGroupsNode.GetSubNode(subNodeName, false);
+					PeerGroup peerGroup = PeerGroup.TryLoad(peerGroupNode);
+					if (peerGroup != null)
+					{
+						this.PeerGroups.Add(peerGroup);
+					}
+				}
+			}
+
+			Dictionary<Guid, PeerGroup> idToGroupMap = this.PeerGroups.ToDictionary(group => group.Id);
+			ISettingsNode locationsNode = settingsNode.GetSubNode(nameof(this.Locations), false);
+			if (locationsNode != null)
+			{
+				foreach (string subNodeName in locationsNode.GetSubNodeNames())
+				{
+					ISettingsNode locationNode = locationsNode.GetSubNode(subNodeName, false);
+					Location location = Location.TryLoad(locationNode, idToGroupMap);
+					if (location != null)
+					{
+						this.Locations.Add(location);
+					}
+				}
+			}
+		}
 
 		private void LoadDefaults()
 		{
@@ -136,13 +178,6 @@ namespace WirePeep
 					}
 				}
 			}
-		}
-
-		private void Load(ISettingsNode settingsNode)
-		{
-			// TODO: Load configuration. [Bill, 5/7/2020]
-			this.GetHashCode();
-			settingsNode.GetHashCode();
 		}
 
 		#endregion
