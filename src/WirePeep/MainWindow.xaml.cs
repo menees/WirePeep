@@ -31,7 +31,7 @@ namespace WirePeep
 		private readonly WindowSaver saver;
 		private readonly StatusRowCollection statusRows;
 		private readonly LogRowCollection logRows;
-		private readonly Dictionary<string, LogRow> failedPeerGroupToLogRowMap;
+		private readonly Dictionary<Guid, LogRow> failedPeerGroupToLogRowMap;
 
 		private Options options;
 		private Profile profile;
@@ -40,7 +40,7 @@ namespace WirePeep
 		private int updatingLock;
 		private bool closing;
 		private bool simulateFailure = Convert.ToBoolean(0);
-		private Dictionary<string, StatusRow> statusRowMap;
+		private Dictionary<Guid, StatusRow> statusRowMap;
 		private DataGrid selectedGrid;
 
 		#endregion
@@ -52,10 +52,10 @@ namespace WirePeep
 			this.InitializeComponent();
 
 			this.statusRows = (StatusRowCollection)this.Resources["StatusRows"];
-			this.statusRowMap = new Dictionary<string, StatusRow>(StringComparer.CurrentCultureIgnoreCase);
+			this.statusRowMap = new Dictionary<Guid, StatusRow>();
 
 			this.logRows = (LogRowCollection)this.Resources["LogRows"];
-			this.failedPeerGroupToLogRowMap = new Dictionary<string, LogRow>(this.statusRowMap.Comparer);
+			this.failedPeerGroupToLogRowMap = new Dictionary<Guid, LogRow>(this.statusRowMap.Comparer);
 
 			this.saver = new WindowSaver(this);
 			this.saver.LoadSettings += this.SaverLoadSettings;
@@ -123,29 +123,29 @@ namespace WirePeep
 			Clipboard.SetText(sb.ToString());
 		}
 
-		private void UpdateStates(IDictionary<PeerGroupState, IReadOnlyList<LocationState>> states)
+		private void UpdateStates(StateSnapshot states)
 		{
 			this.UpdateStatusRows(states);
-			this.UpdateLogRows(states.Keys);
+			this.UpdateLogRows(states.AllPeerGroups);
 
 			// This isn't a dependency property, so we can't bind to it. We have to manually update it.
 			TimeSpan monitored = this.stateManager.Monitored;
-			monitored = ConvertUtility.TruncateToSeconds(monitored);
+			monitored = ConvertUtility.RoundToSeconds(monitored);
 			this.monitoredTime.Text = monitored.ToString();
 
 			// Optionally, simulate a failure when ScrollLock is toggled on.
 			this.simulateFailure = this.options.ScrollLockSimulatesFailure && Keyboard.IsKeyToggled(Key.Scroll);
 		}
 
-		private void UpdateStatusRows(IDictionary<PeerGroupState, IReadOnlyList<LocationState>> states)
+		private void UpdateStatusRows(StateSnapshot states)
 		{
-			var newRowMap = new Dictionary<string, StatusRow>(this.statusRowMap.Count, this.statusRowMap.Comparer);
-			foreach (var pair in states)
+			var newRowMap = new Dictionary<Guid, StatusRow>(this.statusRowMap.Count, this.statusRowMap.Comparer);
+			foreach (var pair in states.AllPeerGroupLocations)
 			{
 				PeerGroupState peerGroupState = pair.Key;
 				foreach (LocationState locationState in pair.Value)
 				{
-					string key = $"{peerGroupState.PeerGroup.Name}\0\0{locationState.Location.Name}";
+					Guid key = locationState.Location.Id;
 					if (this.statusRowMap.TryGetValue(key, out StatusRow row))
 					{
 						row.Update(peerGroupState, locationState);
@@ -169,37 +169,37 @@ namespace WirePeep
 			this.statusRowMap = newRowMap;
 		}
 
-		private void UpdateLogRows(ICollection<PeerGroupState> peerGroupStates)
+		private void UpdateLogRows(IEnumerable<PeerGroupState> peerGroupStates)
 		{
-			HashSet<string> currentPeerGroups = new HashSet<string>(this.failedPeerGroupToLogRowMap.Comparer);
+			HashSet<Guid> currentPeerGroups = new HashSet<Guid>(this.failedPeerGroupToLogRowMap.Comparer);
 			foreach (PeerGroupState peerGroupState in peerGroupStates)
 			{
 				PeerGroup peerGroup = peerGroupState.PeerGroup;
-				string peerGroupName = peerGroup.Name;
+				Guid peerGroupId = peerGroup.Id;
 
-				if (this.failedPeerGroupToLogRowMap.TryGetValue(peerGroupName, out LogRow row))
+				if (this.failedPeerGroupToLogRowMap.TryGetValue(peerGroupId, out LogRow row))
 				{
 					row.Update(peerGroupState);
 					if (!peerGroupState.IsFailed)
 					{
-						this.failedPeerGroupToLogRowMap.Remove(peerGroupName);
+						this.failedPeerGroupToLogRowMap.Remove(peerGroupId);
 					}
 				}
 				else if (peerGroupState.IsFailed)
 				{
-					LogRow previous = this.logRows.FirstOrDefault(r => r.PeerGroupName == peerGroupName);
+					LogRow previous = this.logRows.FirstOrDefault(r => r.PeerGroupId == peerGroupId);
 					row = new LogRow();
 					row.Update(peerGroupState, previous);
 					this.logRows.Insert(0, row);
-					this.failedPeerGroupToLogRowMap.Add(peerGroupName, row);
+					this.failedPeerGroupToLogRowMap.Add(peerGroupId, row);
 				}
 
-				currentPeerGroups.Add(peerGroupName);
+				currentPeerGroups.Add(peerGroupId);
 			}
 
-			foreach (string peerGroupName in this.failedPeerGroupToLogRowMap.Keys.Where(key => !currentPeerGroups.Contains(key)).ToArray())
+			foreach (Guid peerGroupId in this.failedPeerGroupToLogRowMap.Keys.Where(key => !currentPeerGroups.Contains(key)).ToArray())
 			{
-				this.failedPeerGroupToLogRowMap.Remove(peerGroupName);
+				this.failedPeerGroupToLogRowMap.Remove(peerGroupId);
 			}
 		}
 
@@ -304,7 +304,7 @@ namespace WirePeep
 			{
 				try
 				{
-					Dictionary<PeerGroupState, IReadOnlyList<LocationState>> states = this.stateManager.Update(this.simulateFailure);
+					StateSnapshot states = this.stateManager.Update(this.simulateFailure);
 					this.Dispatcher.BeginInvoke(new Action(() => this.UpdateStates(states)));
 				}
 				finally

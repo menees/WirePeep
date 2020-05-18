@@ -53,7 +53,7 @@ namespace WirePeep
 
 		#region Public Methods
 
-		public Dictionary<PeerGroupState, IReadOnlyList<LocationState>> Update(bool simulateFailure)
+		public StateSnapshot Update(bool simulateFailure)
 		{
 			Dictionary<PeerGroupState, List<LocationState>> mapCopy;
 			lock (this.mapLock)
@@ -70,16 +70,16 @@ namespace WirePeep
 			ParallelOptions options = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount / 2 };
 			Parallel.ForEach(mapCopy, options, pair => pair.Key.Update(utcNow, pair.Value, simulateFailure));
 
-			var result = new Dictionary<PeerGroupState, IReadOnlyList<LocationState>>(mapCopy.Count);
+			StateSnapshot result = new StateSnapshot(utcNow, mapCopy.Count);
 			foreach (var pair in mapCopy)
 			{
-				PeerGroupState privatePeerGroup = pair.Key;
-				PeerGroupState publicPeerGroup = privatePeerGroup.ShallowCopy();
+				PeerGroupState managedPeerGroup = pair.Key;
+				PeerGroupState snapshotPeerGroup = managedPeerGroup.ShallowCopy();
 
-				List<LocationState> privateLocations = pair.Value;
-				List<LocationState> publicLocations = privateLocations.Select(l => l.ShallowCopy()).ToList();
+				List<LocationState> managedLocations = pair.Value;
+				IList<LocationState> snapshotLocations = managedLocations.Select(l => l.ShallowCopy()).ToArray();
 
-				result.Add(publicPeerGroup, publicLocations);
+				result.Add(snapshotPeerGroup, snapshotLocations);
 			}
 
 			this.LastUpdated = utcNow;

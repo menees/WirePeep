@@ -26,6 +26,7 @@ namespace WirePeep
 			this.PeerGroup = peerGroup;
 			this.Name = name;
 			this.Address = address;
+			this.Id = Guid.NewGuid();
 		}
 
 		#endregion
@@ -37,6 +38,8 @@ namespace WirePeep
 		public string Name { get; }
 
 		public IPAddress Address { get; }
+
+		public Guid Id { get; }
 
 		#endregion
 

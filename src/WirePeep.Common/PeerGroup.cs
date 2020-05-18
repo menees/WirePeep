@@ -35,6 +35,7 @@ namespace WirePeep
 			this.Fail = fail;
 			this.Poll = poll;
 			this.Wait = wait;
+			this.Id = Guid.NewGuid();
 		}
 
 		#endregion
@@ -48,6 +49,8 @@ namespace WirePeep
 		public TimeSpan Poll { get; }
 
 		public TimeSpan Wait { get; }
+
+		public Guid Id { get; }
 
 		#endregion
 

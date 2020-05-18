@@ -22,6 +22,7 @@ namespace WirePeep
 		private string comment;
 		private bool isActive;
 		private bool isSelected;
+		private Guid peerGroupId;
 
 		#endregion
 
@@ -43,13 +44,17 @@ namespace WirePeep
 
 		public bool IsSelected { get => this.isSelected; set => this.Update(ref this.isSelected, value); }
 
+		public Guid PeerGroupId { get => this.peerGroupId; set => this.Update(ref this.peerGroupId, value); }
+
 		#endregion
 
 		#region Public Methods
 
 		public void Update(PeerGroupState peerGroupState, LogRow previousLogRow = null)
 		{
-			this.PeerGroupName = peerGroupState.PeerGroup.Name;
+			PeerGroup peerGroup = peerGroupState.PeerGroup;
+			this.PeerGroupName = peerGroup.Name;
+			this.PeerGroupId = peerGroup.Id;
 
 			if (this.FailStarted == DateTime.MinValue)
 			{
@@ -57,7 +62,7 @@ namespace WirePeep
 				this.IsActive = true;
 			}
 
-			this.Length = ConvertUtility.TruncateToSeconds(peerGroupState.LastUpdateRequest - this.FailStarted);
+			this.Length = ConvertUtility.RoundToSeconds(peerGroupState.LastUpdateRequest - this.FailStarted);
 
 			if (!peerGroupState.IsFailed)
 			{
@@ -67,7 +72,7 @@ namespace WirePeep
 
 			if (previousLogRow?.FailEnded != null)
 			{
-				this.SincePrevious = ConvertUtility.TruncateToSeconds(this.FailStarted - previousLogRow.FailEnded.Value);
+				this.SincePrevious = ConvertUtility.RoundToSeconds(this.FailStarted - previousLogRow.FailEnded.Value);
 			}
 		}
 
