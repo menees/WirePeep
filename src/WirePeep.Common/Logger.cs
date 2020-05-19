@@ -14,6 +14,14 @@ namespace WirePeep
 	{
 		#region Private Data Members
 
+		private const string LocalColumn = "Local";
+		private const string FailureIdColumn = "FailureId";
+		private const string UtcColumn = "Utc";
+		private const string SincePreviousColumn = "SincePrevious";
+		private const string CommentColumn = "Comment";
+		private const string LengthColumn = "Length";
+		private const string PeerGroupColumn = nameof(PeerGroup);
+
 		private readonly HashSet<Entry> headers = new HashSet<Entry>();
 		private StreamWriter writer;
 		private int batchDepth;
@@ -61,7 +69,8 @@ namespace WirePeep
 		{
 			using (this.BeginBatch())
 			{
-				this.TryAddHeader(Entry.Simple, nameof(PeerGroup), "LocalStart", "Length", "LocalEnd", "SincePrevious", "Comment", "UtcStart", "UtcEnd");
+				this.TryAddHeader(
+					Entry.Simple, PeerGroupColumn, "LocalStart", LengthColumn, "LocalEnd", SincePreviousColumn, CommentColumn, "UtcStart", "UtcEnd");
 				TimeSpan? length = endedUtc != null ? ConvertUtility.RoundToSeconds(endedUtc.Value - startedUtc) : (TimeSpan?)null;
 				this.AddValues(peerGroupName, startedUtc.ToLocalTime(), length, endedUtc?.ToLocalTime(), sincePrevious, comment, startedUtc, endedUtc);
 			}
@@ -71,7 +80,7 @@ namespace WirePeep
 		{
 			using (this.BeginBatch())
 			{
-				this.TryAddHeader(Entry.LogStart, "Local", "Utc");
+				this.TryAddHeader(Entry.LogStart, LocalColumn, UtcColumn);
 				this.AddValues(Entry.LogStart, utcNow.ToLocalTime(), utcNow);
 			}
 		}
@@ -80,7 +89,7 @@ namespace WirePeep
 		{
 			using (this.BeginBatch())
 			{
-				this.TryAddHeader(Entry.FailureStart, "Local", "FailureId", nameof(PeerGroup), "SincePrevious", "Utc");
+				this.TryAddHeader(Entry.FailureStart, LocalColumn, FailureIdColumn, PeerGroupColumn, SincePreviousColumn, UtcColumn);
 				this.AddValues(Entry.FailureStart, utcNow.ToLocalTime(), failureId, peerGroupName, sincePrevious, utcNow);
 			}
 		}
@@ -89,7 +98,7 @@ namespace WirePeep
 		{
 			using (this.BeginBatch())
 			{
-				this.TryAddHeader(Entry.FailureComment, "Local", "FailureId", nameof(PeerGroup), "Comment", "Utc");
+				this.TryAddHeader(Entry.FailureComment, LocalColumn, FailureIdColumn, PeerGroupColumn, CommentColumn, UtcColumn);
 				this.AddValues(Entry.FailureComment, utcNow.ToLocalTime(), failureId, peerGroupName, comment, utcNow);
 			}
 		}
@@ -98,7 +107,7 @@ namespace WirePeep
 		{
 			using (this.BeginBatch())
 			{
-				this.TryAddHeader(Entry.FailureEnd, "Local", "FailureId", nameof(PeerGroup), "Length", "Utc");
+				this.TryAddHeader(Entry.FailureEnd, LocalColumn, FailureIdColumn, PeerGroupColumn, LengthColumn, UtcColumn);
 				this.AddValues(Entry.FailureEnd, utcNow.ToLocalTime(), failureId, peerGroupName, length, utcNow);
 			}
 		}
@@ -116,11 +125,9 @@ namespace WirePeep
 			using (this.BeginBatch())
 			{
 				this.TryAddHeader(
-					Entry.LogSummary, "Local", nameof(PeerGroup), "FailCount", "TotalFailLength", "PercentFailed", "MinFail", "MaxFail", "AvgFail", "Utc");
-
-				string percentFailed = percentFailTime.ToString("P");
+					Entry.LogSummary, LocalColumn, PeerGroupColumn, "FailCount", "TotalFail", "PercentFail", "MinFail", "MaxFail", "AvgFail", UtcColumn);
 				this.AddValues(
-					Entry.LogSummary, utcNow.ToLocalTime(), peerGroupName, failCount, totalFailLength, percentFailed, minFail, maxFail, averageFail, utcNow);
+					Entry.LogSummary, utcNow.ToLocalTime(), peerGroupName, failCount, totalFailLength, percentFailTime, minFail, maxFail, averageFail, utcNow);
 			}
 		}
 
@@ -128,7 +135,7 @@ namespace WirePeep
 		{
 			using (this.BeginBatch())
 			{
-				this.TryAddHeader(Entry.LogEnd, "Local", "MonitoredLength", "Utc");
+				this.TryAddHeader(Entry.LogEnd, LocalColumn, "Monitored", UtcColumn);
 				this.AddValues(Entry.LogEnd, utcNow.ToLocalTime(), monitoredLength, utcNow);
 			}
 		}
@@ -137,7 +144,8 @@ namespace WirePeep
 		{
 			if (this.batchDepth++ == 0)
 			{
-				this.writer = File.AppendText(this.FileName);
+				bool create = this.IsSimple && this.headers.Count == 0;
+				this.writer = create ? File.CreateText(this.FileName) : File.AppendText(this.FileName);
 			}
 
 			return new Disposer(() =>
@@ -161,7 +169,7 @@ namespace WirePeep
 				if (!this.IsSimple)
 				{
 					List<string> values = new List<string>(headerValues.Length);
-					values.Add("// " + entry);
+					values.Add("//" + entry);
 					values.AddRange(headerValues);
 					headerValues = values.ToArray();
 				}

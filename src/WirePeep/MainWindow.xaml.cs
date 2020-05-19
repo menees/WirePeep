@@ -274,7 +274,7 @@ namespace WirePeep
 					{
 						int numFails = group.Count();
 						TimeSpan totalFailLength = TimeSpan.FromTicks(group.Sum(row => row.Length.Ticks));
-						decimal percentFailTime = (decimal)Math.Round(100 * (totalFailLength.TotalSeconds / monitored.TotalSeconds), 2);
+						decimal percentFailTime = Math.Round((decimal)(100 * totalFailLength.TotalSeconds / monitored.TotalSeconds), 2);
 						this.logger.AddLogSummary(
 							group.First().PeerGroupName,
 							utcNow,
