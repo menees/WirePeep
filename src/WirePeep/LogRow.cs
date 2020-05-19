@@ -26,6 +26,15 @@ namespace WirePeep
 
 		#endregion
 
+		#region Constructors
+
+		public LogRow(int failureId)
+		{
+			this.FailureId = failureId;
+		}
+
+		#endregion
+
 		#region Public Properties
 
 		public string PeerGroupName { get => this.peerGroupName; set => this.Update(ref this.peerGroupName, value); }
@@ -45,6 +54,8 @@ namespace WirePeep
 		public bool IsSelected { get => this.isSelected; set => this.Update(ref this.isSelected, value); }
 
 		public Guid PeerGroupId { get => this.peerGroupId; set => this.Update(ref this.peerGroupId, value); }
+
+		public int FailureId { get; }
 
 		#endregion
 

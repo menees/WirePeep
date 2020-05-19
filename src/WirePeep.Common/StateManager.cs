@@ -27,6 +27,7 @@ namespace WirePeep
 		public StateManager(Profile profile)
 		{
 			this.profile = profile;
+			this.Started = DateTime.UtcNow;
 
 			this.profile.Locations.CollectionChanged += this.LocationsCollectionChanged;
 			this.profile.PeerGroups.CollectionChanged += this.PeerGroupsCollectionChanged;
@@ -39,7 +40,7 @@ namespace WirePeep
 
 		#region Public Properties
 
-		public DateTime Started { get; private set; }
+		public DateTime Started { get; }
 
 		public DateTime LastUpdated { get; private set; }
 
@@ -62,11 +63,6 @@ namespace WirePeep
 			}
 
 			DateTime utcNow = DateTime.UtcNow;
-			if (this.Started == DateTime.MinValue)
-			{
-				this.Started = utcNow;
-			}
-
 			ParallelOptions options = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount / 2 };
 			Parallel.ForEach(mapCopy, options, pair => pair.Key.Update(utcNow, pair.Value, simulateFailure));
 

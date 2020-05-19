@@ -116,9 +116,11 @@ namespace WirePeep
 			using (this.BeginBatch())
 			{
 				this.TryAddHeader(
-					Entry.LogSummary, "Local", nameof(PeerGroup), "FailCount", "TotalFailLength", "PercentFailTime", "MinFail", "MaxFail", "AvgFail", "Utc");
+					Entry.LogSummary, "Local", nameof(PeerGroup), "FailCount", "TotalFailLength", "PercentFailed", "MinFail", "MaxFail", "AvgFail", "Utc");
+
+				string percentFailed = percentFailTime.ToString("P");
 				this.AddValues(
-					Entry.LogSummary, utcNow.ToLocalTime(), peerGroupName, failCount, totalFailLength, percentFailTime, minFail, maxFail, averageFail, utcNow);
+					Entry.LogSummary, utcNow.ToLocalTime(), peerGroupName, failCount, totalFailLength, percentFailed, minFail, maxFail, averageFail, utcNow);
 			}
 		}
 
@@ -159,7 +161,7 @@ namespace WirePeep
 				if (!this.IsSimple)
 				{
 					List<string> values = new List<string>(headerValues.Length);
-					values.Add("//");
+					values.Add("// " + entry);
 					values.AddRange(headerValues);
 					headerValues = values.ToArray();
 				}

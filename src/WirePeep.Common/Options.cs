@@ -15,6 +15,7 @@ namespace WirePeep
 	{
 		#region Private Data Members
 
+		private LogFileNameFormat logFileNameFormat;
 		private string logFolder;
 
 		#endregion
@@ -25,16 +26,32 @@ namespace WirePeep
 		{
 			if (settingsNode != null)
 			{
+				this.logFileNameFormat = settingsNode.GetValue(nameof(this.LogFileNameFormat), LogFileNameFormat.UtcNow);
 				this.logFolder = settingsNode.GetValue(nameof(this.LogFolder), string.Empty);
 				this.ScrollLockSimulatesFailure = settingsNode.GetValue(nameof(this.ScrollLockSimulatesFailure), ApplicationInfo.IsDebugBuild);
 			}
 
+			this.ValidateLogFileNameFormat();
 			this.ValidateLogFolder();
 		}
 
 		#endregion
 
 		#region Public Properties
+
+		public LogFileNameFormat LogFileNameFormat
+		{
+			get
+			{
+				return this.logFileNameFormat;
+			}
+
+			set
+			{
+				this.logFileNameFormat = value;
+				this.ValidateLogFileNameFormat();
+			}
+		}
 
 		public string LogFolder
 		{
@@ -58,13 +75,47 @@ namespace WirePeep
 
 		public void Save(ISettingsNode settingsNode)
 		{
+			settingsNode.SetValue(nameof(this.LogFileNameFormat), this.logFileNameFormat);
 			settingsNode.SetValue(nameof(this.LogFolder), this.logFolder);
 			settingsNode.SetValue(nameof(this.ScrollLockSimulatesFailure), this.ScrollLockSimulatesFailure);
+		}
+
+		public string GetFullLogFileName(DateTime utcNow)
+		{
+			const string Extension = ".txt";
+			const string DateTimeFormat = "_yyyy-MM-dd_HH-mm-ss";
+
+			string fileName = nameof(WirePeep);
+			switch (this.logFileNameFormat)
+			{
+				case LogFileNameFormat.Fixed:
+					fileName += Extension;
+					break;
+
+				case LogFileNameFormat.LocalNow:
+					fileName += utcNow.ToLocalTime().ToString(DateTimeFormat) + Extension;
+					break;
+
+				default: // LogFileNameFormat.UtcNow:
+					fileName += utcNow.ToString(DateTimeFormat) + "Z" + Extension;
+					break;
+			}
+
+			string result = Path.Combine(this.LogFolder, fileName);
+			return result;
 		}
 
 		#endregion
 
 		#region Private Methods
+
+		private void ValidateLogFileNameFormat()
+		{
+			if (!Enum.IsDefined(typeof(LogFileNameFormat), this.logFileNameFormat))
+			{
+				this.logFileNameFormat = LogFileNameFormat.UtcNow;
+			}
+		}
 
 		private void ValidateLogFolder()
 		{

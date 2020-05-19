@@ -43,6 +43,8 @@ namespace WirePeep
 		private bool closing;
 		private bool simulateFailure;
 		private DataGrid selectedGrid;
+		private Logger logger;
+		private int failureId;
 
 		#endregion
 
@@ -184,15 +186,18 @@ namespace WirePeep
 					if (!peerGroupState.IsFailed)
 					{
 						this.failedPeerGroupToLogRowMap.Remove(peerGroupId);
+						this.logger?.AddFailureEnd(row.PeerGroupName, row.FailEnded.Value, row.FailureId, ConvertUtility.RoundToSeconds(row.Length));
 					}
 				}
 				else if (peerGroupState.IsFailed)
 				{
 					LogRow previous = this.logRows.FirstOrDefault(r => r.PeerGroupId == peerGroupId);
-					row = new LogRow();
+					row = new LogRow(this.failureId++);
 					row.Update(peerGroupState, previous);
 					this.logRows.Insert(0, row);
 					this.failedPeerGroupToLogRowMap.Add(peerGroupId, row);
+					TimeSpan? sincePrevious = row.SincePrevious != null ? ConvertUtility.RoundToSeconds(row.SincePrevious.Value) : (TimeSpan?)null;
+					this.logger?.AddFailureStart(row.PeerGroupName, row.FailStarted, row.FailureId, sincePrevious);
 				}
 
 				currentPeerGroups.Add(peerGroupId);
@@ -201,6 +206,90 @@ namespace WirePeep
 			foreach (Guid peerGroupId in this.failedPeerGroupToLogRowMap.Keys.Where(key => !currentPeerGroups.Contains(key)).ToArray())
 			{
 				this.failedPeerGroupToLogRowMap.Remove(peerGroupId);
+			}
+		}
+
+		private void EditComment(LogRow logRow)
+		{
+			string comment = logRow.Comment;
+			StringBuilder sb = new StringBuilder();
+			sb.Append(string.IsNullOrEmpty(comment) ? "Add a" : "Edit the");
+			sb.Append(" comment for the \"").Append(logRow.PeerGroupName).Append("\" failure that started at ");
+			sb.Append(logRow.FailStarted).Append(':');
+
+			comment = WindowsUtility.ShowInputBox(this, sb.ToString(), null, comment);
+			if (comment != null)
+			{
+				logRow.Comment = comment;
+				this.logger?.AddFailureComment(logRow.PeerGroupName, this.stateManager.LastUpdated, logRow.FailureId, comment);
+			}
+		}
+
+		private void EditLocation(StatusRow statusRow)
+		{
+			bool insert = statusRow == null;
+			if (insert)
+			{
+				statusRow = new StatusRow();
+			}
+
+			// TODO: Finish EditLocation. [Bill, 5/19/2020]
+			MessageBox.Show(nameof(this.EditItemExecuted) + " for " + statusRow.LocationName);
+			this.GetHashCode();
+		}
+
+		private string GenerateLogFileName()
+		{
+			DateTime started = this.stateManager.Started;
+			string result = this.options.GetFullLogFileName(started);
+			return result;
+		}
+
+		private void OpenLogger(string logFileName)
+		{
+			this.logger = new Logger(logFileName, false);
+			this.logger.AddLogStart(this.stateManager.Started);
+		}
+
+		private void UpdateLogger()
+		{
+			string logFileName = this.GenerateLogFileName();
+			if (logFileName != this.logger.FileName)
+			{
+				this.CloseLogger();
+				this.OpenLogger(logFileName);
+			}
+		}
+
+		private void CloseLogger()
+		{
+			if (this.logger != null)
+			{
+				DateTime utcNow = this.stateManager.LastUpdated;
+				TimeSpan monitored = this.stateManager.Monitored;
+
+				using (this.logger.BeginBatch())
+				{
+					foreach (var group in this.logRows.GroupBy(row => row.PeerGroupId))
+					{
+						int numFails = group.Count();
+						TimeSpan totalFailLength = TimeSpan.FromTicks(group.Sum(row => row.Length.Ticks));
+						decimal percentFailTime = (decimal)Math.Round(100 * (totalFailLength.TotalSeconds / monitored.TotalSeconds), 2);
+						this.logger.AddLogSummary(
+							group.First().PeerGroupName,
+							utcNow,
+							numFails,
+							ConvertUtility.RoundToSeconds(totalFailLength),
+							percentFailTime,
+							ConvertUtility.RoundToSeconds(group.Min(row => row.Length)),
+							ConvertUtility.RoundToSeconds(group.Max(row => row.Length)),
+							ConvertUtility.RoundToSeconds(TimeSpan.FromMilliseconds(group.Average(row => row.Length.TotalMilliseconds))));
+					}
+
+					this.logger.AddLogEnd(utcNow, ConvertUtility.RoundToSeconds(monitored));
+				}
+
+				this.logger = null;
 			}
 		}
 
@@ -232,6 +321,8 @@ namespace WirePeep
 			}
 
 			this.stateManager = new StateManager(this.profile);
+			string logFileName = this.GenerateLogFileName();
+			this.OpenLogger(logFileName);
 			this.backgroundTimer = new Timer(this.BackgroundTimerCallback, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
 		}
 
@@ -255,6 +346,8 @@ namespace WirePeep
 				rowNode.SetValue(nameof(rowHeight.Value), rowHeight.Value);
 				rowNode.SetValue(nameof(rowHeight.GridUnitType), rowHeight.GridUnitType);
 			}
+
+			this.CloseLogger();
 		}
 
 		private void ExitExecuted(object sender, ExecutedRoutedEventArgs e)
@@ -267,8 +360,8 @@ namespace WirePeep
 			OptionsDialog dialog = new OptionsDialog();
 			if (dialog.Execute(this, this.options))
 			{
-				// TODO: React to any Options that changed (e.g., LogFolder). [Bill, 5/7/2020]
 				this.saver.Save();
+				this.UpdateLogger();
 			}
 		}
 
@@ -279,9 +372,7 @@ namespace WirePeep
 
 		private void AddLocationExecuted(object sender, ExecutedRoutedEventArgs e)
 		{
-			// TODO: Finish AddLocationExecuted. [Bill, 5/7/2020]
-			MessageBox.Show(nameof(this.AddLocationExecuted));
-			this.GetHashCode();
+			this.EditLocation(null);
 		}
 
 		private void ExportLogCanExecute(object sender, CanExecuteRoutedEventArgs e) => e.CanExecute = this.logRows.Count > 0;
@@ -337,14 +428,13 @@ namespace WirePeep
 
 		private void EditItemExecuted(object sender, ExecutedRoutedEventArgs e)
 		{
-			// TODO: Finish EditItemExecuted. [Bill, 5/17/2020]
 			if (this.SelectedGrid == this.logGrid)
 			{
-				MessageBox.Show(nameof(this.EditItemExecuted) + " for " + this.SelectedLogRow.PeerGroupName);
+				this.EditComment(this.SelectedLogRow);
 			}
 			else
 			{
-				MessageBox.Show(nameof(this.EditItemExecuted) + " for " + this.SelectedStatusRow.LocationName);
+				this.EditLocation(this.SelectedStatusRow);
 			}
 		}
 
@@ -371,7 +461,7 @@ namespace WirePeep
 
 					string message = sb.ToString();
 					string caption = ApplicationInfo.ApplicationName;
-					if (MessageBox.Show(this, message, caption, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+					if (WindowsUtility.ShowQuestion(this, message, caption))
 					{
 						this.profile.Locations.Remove(location);
 
