@@ -28,6 +28,7 @@ namespace WirePeep
 		private bool? isLocationConnected;
 		private int? locationRoundtripMilliseconds;
 		private bool isLocationUpToDate;
+		private Guid locationId;
 
 		#endregion
 
@@ -61,6 +62,8 @@ namespace WirePeep
 
 		public bool IsLocationUpToDate { get => this.isLocationUpToDate; set => this.Update(ref this.isLocationUpToDate, value); }
 
+		public Guid LocationId { get => this.locationId; set => this.Update(ref this.locationId, value); }
+
 		#endregion
 
 		#region Public Methods
@@ -80,6 +83,7 @@ namespace WirePeep
 			this.IsLocationConnected = locationState.IsConnected;
 			this.LocationRoundtripMilliseconds = locationState.IsConnected ?? false ? (int)locationState.RoundtripTime.TotalMilliseconds : (int?)null;
 			this.IsLocationUpToDate = locationState.UpdateCounter == peerGroupState.UpdateCounter;
+			this.LocationId = location.Id;
 		}
 
 		#endregion

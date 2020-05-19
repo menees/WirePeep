@@ -30,6 +30,7 @@ namespace WirePeep
 
 		private readonly WindowSaver saver;
 		private readonly StatusRowCollection statusRows;
+		private readonly Dictionary<Guid, StatusRow> statusRowMap;
 		private readonly LogRowCollection logRows;
 		private readonly Dictionary<Guid, LogRow> failedPeerGroupToLogRowMap;
 
@@ -39,8 +40,7 @@ namespace WirePeep
 		private Timer backgroundTimer;
 		private int updatingLock;
 		private bool closing;
-		private bool simulateFailure = Convert.ToBoolean(0);
-		private Dictionary<Guid, StatusRow> statusRowMap;
+		private bool simulateFailure;
 		private DataGrid selectedGrid;
 
 		#endregion
@@ -139,14 +139,16 @@ namespace WirePeep
 
 		private void UpdateStatusRows(StateSnapshot states)
 		{
-			var newRowMap = new Dictionary<Guid, StatusRow>(this.statusRowMap.Count, this.statusRowMap.Comparer);
+			HashSet<Guid> currentLocations = new HashSet<Guid>(this.statusRowMap.Comparer);
 			foreach (var pair in states.AllPeerGroupLocations)
 			{
 				PeerGroupState peerGroupState = pair.Key;
 				foreach (LocationState locationState in pair.Value)
 				{
-					Guid key = locationState.Location.Id;
-					if (this.statusRowMap.TryGetValue(key, out StatusRow row))
+					Guid locationId = locationState.Location.Id;
+					currentLocations.Add(locationId);
+
+					if (this.statusRowMap.TryGetValue(locationId, out StatusRow row))
 					{
 						row.Update(peerGroupState, locationState);
 					}
@@ -155,18 +157,16 @@ namespace WirePeep
 						row = new StatusRow();
 						row.Update(peerGroupState, locationState);
 						this.statusRows.Add(row);
+						this.statusRowMap.Add(locationId, row);
 					}
-
-					newRowMap.Add(key, row);
 				}
 			}
 
-			foreach (var pair in this.statusRowMap.Where(pair => !newRowMap.ContainsKey(pair.Key)))
+			foreach (var pair in this.statusRowMap.Where(pair => !currentLocations.Contains(pair.Key)).ToArray())
 			{
 				this.statusRows.Remove(pair.Value);
+				this.statusRowMap.Remove(pair.Key);
 			}
-
-			this.statusRowMap = newRowMap;
 		}
 
 		private void UpdateLogRows(IEnumerable<PeerGroupState> peerGroupStates)
@@ -333,9 +333,45 @@ namespace WirePeep
 
 		private void DeleteItemExecuted(object sender, ExecutedRoutedEventArgs e)
 		{
-			// TODO: Finish DeleteItemExecuted. [Bill, 5/17/2020]
-			MessageBox.Show(nameof(this.DeleteItemExecuted) + " for " + this.SelectedStatusRow.LocationName);
-			this.GetHashCode();
+			StatusRow statusRow = this.SelectedStatusRow;
+			if (statusRow != null)
+			{
+				Location location = this.profile.Locations.FirstOrDefault(l => l.Id == statusRow.LocationId);
+				if (location != null)
+				{
+					bool deletePeerGroup = this.profile.Locations.Count(l => l.PeerGroup == location.PeerGroup) == 1;
+
+					StringBuilder sb = new StringBuilder("Are you sure you want to delete location \"");
+					sb.Append(statusRow.LocationName).Append('"');
+					if (deletePeerGroup)
+					{
+						sb.Append(" (and peer group \"").Append(location.PeerGroup.Name).Append("\")");
+					}
+
+					sb.Append('?');
+
+					string message = sb.ToString();
+					if (MessageBox.Show(message, ApplicationInfo.ApplicationName, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+					{
+						this.profile.Locations.Remove(location);
+
+						// Note: Don't remove from this.statusRowMap here. Let the next Update cycle clean it up.
+						this.statusRows.Remove(statusRow);
+
+						if (deletePeerGroup)
+						{
+							this.profile.PeerGroups.Remove(location.PeerGroup);
+
+							// Note: Don't remove from this.failedPeerGroupToLogRowMap. Let the next Update cycle clean it up.
+							LogRow[] removeLogRows = this.logRows.Where(row => row.PeerGroupId == location.PeerGroup.Id).ToArray();
+							foreach (LogRow row in removeLogRows)
+							{
+								this.logRows.Remove(row);
+							}
+						}
+					}
+				}
+			}
 		}
 
 		private void CopyCanExecute(object sender, CanExecuteRoutedEventArgs e) => e.CanExecute = this.SelectedGrid?.SelectedItem != null;
