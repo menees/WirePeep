@@ -146,7 +146,7 @@
             </MenuItem>
         </Menu>
 
-		<DataGrid x:Name="statusGrid" Grid.Row="1" ItemsSource="{Binding Source={StaticResource StatusRowsView}}" Style="{StaticResource ListViewGrid}" GotFocus="StatusGridGotFocus" ContextMenuOpening="StatusGridContextMenuOpening">
+		<DataGrid x:Name="statusGrid" Grid.Row="1" ItemsSource="{Binding Source={StaticResource StatusRowsView}}" Style="{StaticResource ListViewGrid}" GotFocus="StatusGridGotFocus" ContextMenuOpening="StatusGridContextMenuOpening" MouseDoubleClick="StatusGridMouseDoubleClick">
             <DataGrid.GroupStyle>
                 <GroupStyle ContainerStyle="{StaticResource StatusGroupHeaderStyle}">
                     <GroupStyle.Panel>
@@ -239,7 +239,7 @@
 
         <GridSplitter x:Name="splitter" Grid.Row="2" HorizontalAlignment="Stretch" VerticalAlignment="Center" ShowsPreview="True" Height="4" />
 
-        <DataGrid x:Name="logGrid" Grid.Row="3" ItemsSource="{Binding Source={StaticResource LogRowsView}}" Style="{StaticResource ListViewGrid}" SelectedCellsChanged="LogGridSelectedCellsChanged" GotFocus="LogGridGotFocus" ContextMenuOpening="LogGridContextMenuOpening">
+        <DataGrid x:Name="logGrid" Grid.Row="3" ItemsSource="{Binding Source={StaticResource LogRowsView}}" Style="{StaticResource ListViewGrid}" SelectedCellsChanged="LogGridSelectedCellsChanged" GotFocus="LogGridGotFocus" ContextMenuOpening="LogGridContextMenuOpening" MouseDoubleClick="LogGridMouseDoubleClick">
             <DataGrid.Resources>
                 <Style TargetType="TextBlock" x:Key="RedIfActive">
                     <Setter Property="Margin" Value="2,0,2,0"/>

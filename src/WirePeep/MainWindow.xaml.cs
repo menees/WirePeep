@@ -525,6 +525,24 @@ namespace WirePeep
 
 		private void StatusGridContextMenuOpening(object sender, ContextMenuEventArgs e) => this.StatusGridGotFocus(sender, e);
 
+		private void LogGridMouseDoubleClick(object sender, MouseButtonEventArgs e)
+		{
+			LogRow logRow = this.SelectedLogRow;
+			if (logRow != null)
+			{
+				this.EditComment(logRow);
+			}
+		}
+
+		private void StatusGridMouseDoubleClick(object sender, MouseButtonEventArgs e)
+		{
+			StatusRow statusRow = this.SelectedStatusRow;
+			if (statusRow != null)
+			{
+				this.EditLocation(statusRow);
+			}
+		}
+
 		#endregion
 	}
 }
