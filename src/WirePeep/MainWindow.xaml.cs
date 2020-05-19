@@ -19,6 +19,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Menees;
 using Menees.Windows.Presentation;
+using Microsoft.Win32;
 
 #endregion
 
@@ -287,9 +288,22 @@ namespace WirePeep
 
 		private void ExportLogExecuted(object sender, ExecutedRoutedEventArgs e)
 		{
-			// TODO: Finish ExportLogExecuted. [Bill, 5/7/2020]
-			MessageBox.Show(nameof(this.ExportLogExecuted));
-			this.GetHashCode();
+			if (this.logRows.Count > 0)
+			{
+				SaveFileDialog dialog = new SaveFileDialog
+				{
+					Filter = "CSV Files (*.csv)|*.csv|All Files (*.*)|*.*",
+					DefaultExt = ".csv",
+					Title = (e.Command as RoutedUICommand)?.Text,
+				};
+
+				if (dialog.ShowDialog(this) ?? false)
+				{
+					// TODO: Finish ExportLogExecuted. [Bill, 5/7/2020]
+					MessageBox.Show(nameof(this.ExportLogExecuted));
+					this.GetHashCode();
+				}
+			}
 		}
 
 		private void AboutExecuted(object sender, ExecutedRoutedEventArgs e)
@@ -351,7 +365,8 @@ namespace WirePeep
 					sb.Append('?');
 
 					string message = sb.ToString();
-					if (MessageBox.Show(message, ApplicationInfo.ApplicationName, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+					string caption = ApplicationInfo.ApplicationName;
+					if (MessageBox.Show(this, message, caption, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
 					{
 						this.profile.Locations.Remove(location);
 
