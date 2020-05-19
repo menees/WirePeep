@@ -299,9 +299,14 @@ namespace WirePeep
 
 				if (dialog.ShowDialog(this) ?? false)
 				{
-					// TODO: Finish ExportLogExecuted. [Bill, 5/7/2020]
-					MessageBox.Show(nameof(this.ExportLogExecuted));
-					this.GetHashCode();
+					Logger logger = new Logger(dialog.FileName, true);
+					using (logger.BeginBatch())
+					{
+						foreach (LogRow logRow in this.logRows.Reverse())
+						{
+							logger.AddSimpleEntry(logRow.PeerGroupName, logRow.FailStarted, logRow.FailEnded, logRow.SincePrevious, logRow.Comment);
+						}
+					}
 				}
 			}
 		}
