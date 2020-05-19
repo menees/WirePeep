@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Data;
 using System.Linq;
 using System.Text;
@@ -254,7 +255,7 @@ namespace WirePeep
 		private void UpdateLogger()
 		{
 			string logFileName = this.GenerateLogFileName();
-			if (logFileName != this.logger.FileName)
+			if (logFileName != this.logger?.FileName)
 			{
 				this.CloseLogger();
 				this.OpenLogger(logFileName);
@@ -328,9 +329,6 @@ namespace WirePeep
 
 		private void SaverSaveSettings(object sender, SettingsEventArgs e)
 		{
-			this.closing = true;
-			this.backgroundTimer.Dispose();
-
 			var settings = e.SettingsNode;
 			this.profile?.Save(settings.GetSubNode(nameof(Profile), true));
 			this.options?.Save(settings.GetSubNode(nameof(Options), true));
@@ -346,7 +344,12 @@ namespace WirePeep
 				rowNode.SetValue(nameof(rowHeight.Value), rowHeight.Value);
 				rowNode.SetValue(nameof(rowHeight.GridUnitType), rowHeight.GridUnitType);
 			}
+		}
 
+		private void ExtendedWindowClosing(object sender, CancelEventArgs e)
+		{
+			this.closing = true;
+			this.backgroundTimer.Dispose();
 			this.CloseLogger();
 		}
 

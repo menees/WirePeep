@@ -13,17 +13,24 @@
 			<RowDefinition/>
 			<RowDefinition Height="Auto"/>
 		</Grid.RowDefinitions>
-		<StackPanel Margin="8">
-			<Label Content="_Log Folder:"/>
-			<DockPanel>
-				<Button Content="..." DockPanel.Dock="Right" Width="20" Margin="8,0,0,0" Click="SelectLogFolderClicked" TabIndex="1"/>
-				<TextBox x:Name="logFolder" TabIndex="0"/>
-			</DockPanel>
-			<!-- TODO: Choose file name mode. [Bill, 5/19/2020] -->
-		</StackPanel>
+		<GroupBox Header="Logging" Padding="8" Margin="8">
+			<StackPanel>
+				<Label Content="_Folder:" Target="{Binding ElementName=logFolder}"/>
+				<DockPanel>
+					<Button Content="..." DockPanel.Dock="Right" Width="20" Margin="8,0,0,0" Click="SelectLogFolderClicked" TabIndex="1"/>
+					<TextBox x:Name="logFolder" TabIndex="0"/>
+				</DockPanel>
+				<Label Content="File _Name Format:" Target="{Binding ElementName=logFileNameFormat}"/>
+				<ComboBox x:Name="logFileNameFormat">
+					<ComboBoxItem>WirePeep.txt (Fixed)</ComboBoxItem>
+					<ComboBoxItem>WirePeep_yyyy-MM-dd_HH-mm-ss.txt (Local Time)</ComboBoxItem>
+					<ComboBoxItem>WirePeep_yyyy-MM-dd_HH-mm-ssZ.txt (UTC Time)</ComboBoxItem>
+				</ComboBox>
+			</StackPanel>
+		</GroupBox>
 		<StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
 			<Button Content="_OK" Width="60" Margin="8,8,0,8" IsDefault="True" Click="OKClicked"/>
 			<Button Content="_Cancel" Width="60" Margin="8" IsCancel="True"/>
 		</StackPanel>
-	</Grid>
+    </Grid>
 </m:ExtendedDialog>

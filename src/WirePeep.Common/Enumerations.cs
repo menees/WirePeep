@@ -13,8 +13,8 @@ namespace WirePeep
 	public enum LogFileNameFormat
 	{
 		Fixed,
-		UtcNow,
 		LocalNow,
+		UtcNow,
 	}
 
 	#endregion

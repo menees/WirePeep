@@ -41,11 +41,13 @@ namespace WirePeep
 		{
 			this.Owner = owner;
 
+			this.logFileNameFormat.SelectedIndex = (int)options.LogFileNameFormat;
 			this.logFolder.Text = options.LogFolder;
 
 			bool result = this.ShowDialog() ?? false;
 			if (result)
 			{
+				options.LogFileNameFormat = (LogFileNameFormat)this.logFileNameFormat.SelectedIndex;
 				options.LogFolder = this.LogFolder;
 			}
 
