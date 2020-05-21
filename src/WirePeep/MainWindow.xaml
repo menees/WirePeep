@@ -11,7 +11,8 @@
 
     <Window.CommandBindings>
         <CommandBinding Command="local:Commands.AddLocation" Executed="AddLocationExecuted" />
-        <CommandBinding Command="local:Commands.Exit" Executed="ExitExecuted" />
+		<CommandBinding Command="local:Commands.EditPeerGroups" Executed="EditPeerGroupsExecuted" />
+		<CommandBinding Command="local:Commands.Exit" Executed="ExitExecuted" />
         <CommandBinding Command="local:Commands.ExportLog" Executed="ExportLogExecuted" CanExecute="ExportLogCanExecute"/>
         <CommandBinding Command="local:Commands.ViewOptions" Executed="ViewOptionsExecuted" />
         <CommandBinding Command="Help" Executed="HelpExecuted" />
@@ -26,7 +27,8 @@
         <local:StatusRowCollection x:Key="StatusRows"/>
         <local:LogRowCollection x:Key="LogRows"/>
 
-        <CollectionViewSource x:Key="StatusRowsView" Source="{StaticResource StatusRows}">
+		<!-- LiveGrouping is needed to auto-regroup when GroupName changes. https://stackoverflow.com/a/25551181/1882616. -->
+        <CollectionViewSource x:Key="StatusRowsView" Source="{StaticResource StatusRows}" IsLiveGroupingRequested="True">
             <CollectionViewSource.GroupDescriptions>
                 <PropertyGroupDescription PropertyName="GroupName"/>
             </CollectionViewSource.GroupDescriptions>
@@ -133,9 +135,10 @@
 
         <Menu Grid.Row="0" Padding="2">
             <MenuItem Header="_View">
-                <MenuItem Header="_Add Location..." Command="local:Commands.AddLocation"/>
-                <MenuItem Header="_Export Log..." Command="local:Commands.ExportLog"/>
-                <Separator/>
+				<MenuItem Header="Edit _Peer Groups..." Command="local:Commands.EditPeerGroups"/>
+				<MenuItem Header="_Add Location..." Command="local:Commands.AddLocation"/>
+				<Separator/>
+				<MenuItem Header="_Export Log..." Command="local:Commands.ExportLog"/>
                 <MenuItem Header="_Options..." Command="local:Commands.ViewOptions"/>
                 <Separator/>
                 <MenuItem Header="E_xit" Command="local:Commands.Exit"/>

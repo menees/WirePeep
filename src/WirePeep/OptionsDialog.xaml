@@ -13,11 +13,11 @@
 			<RowDefinition/>
 			<RowDefinition Height="Auto"/>
 		</Grid.RowDefinitions>
-		<GroupBox Header="Logging" Padding="8" Margin="8">
+		<GroupBox Header="Logging" Padding="12,6,12,12" Margin="12,6,12,0">
 			<StackPanel>
 				<Label Content="_Folder:" Target="{Binding ElementName=logFolder}"/>
 				<DockPanel>
-					<Button Content="..." DockPanel.Dock="Right" Width="20" Margin="8,0,0,0" Click="SelectLogFolderClicked" TabIndex="1"/>
+					<Button Content="..." DockPanel.Dock="Right" Width="20" Margin="12,0,0,0" Click="SelectLogFolderClicked" TabIndex="1"/>
 					<TextBox x:Name="logFolder" TabIndex="0"/>
 				</DockPanel>
 				<Label Content="File _Name Format:" Target="{Binding ElementName=logFileNameFormat}"/>
@@ -29,8 +29,8 @@
 			</StackPanel>
 		</GroupBox>
 		<StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
-			<Button Content="_OK" Width="60" Margin="8,8,0,8" IsDefault="True" Click="OKClicked"/>
-			<Button Content="_Cancel" Width="60" Margin="8" IsCancel="True"/>
+			<Button Content="_OK" Width="60" Margin="12,12,0,12" IsDefault="True" Click="OKClicked"/>
+			<Button Content="_Cancel" Width="60" Margin="12" IsCancel="True"/>
 		</StackPanel>
     </Grid>
 </m:ExtendedDialog>

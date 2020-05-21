@@ -15,6 +15,8 @@ namespace WirePeep
 
 		public static readonly RoutedUICommand AddLocation = new RoutedUICommand("Add Location", nameof(AddLocation), typeof(Commands));
 
+		public static readonly RoutedUICommand EditPeerGroups = new RoutedUICommand("Edit Peer Groups", nameof(EditPeerGroups), typeof(Commands));
+
 		public static readonly RoutedUICommand ViewOptions = new RoutedUICommand("View Options", nameof(ViewOptions), typeof(Commands));
 
 		public static readonly RoutedUICommand About = new RoutedUICommand(nameof(About), nameof(About), typeof(Commands));

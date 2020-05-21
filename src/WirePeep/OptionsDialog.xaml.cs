@@ -74,7 +74,7 @@ namespace WirePeep
 			}
 			else
 			{
-				MessageBox.Show(this, string.Join(Environment.NewLine, errors), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+				WindowsUtility.ShowError(this, string.Join(Environment.NewLine, errors));
 			}
 		}
 

@@ -221,22 +221,49 @@ namespace WirePeep
 			comment = WindowsUtility.ShowInputBox(this, sb.ToString(), null, comment);
 			if (comment != null)
 			{
-				logRow.Comment = comment;
-				this.logger?.AddFailureComment(logRow.PeerGroupName, this.stateManager.LastUpdated, logRow.FailureId, comment);
+				using (new WaitCursor())
+				{
+					logRow.Comment = comment;
+					this.logger?.AddFailureComment(logRow.PeerGroupName, this.stateManager.LastUpdated, logRow.FailureId, comment);
+				}
 			}
 		}
 
 		private void EditLocation(StatusRow statusRow)
 		{
-			bool insert = statusRow == null;
-			if (insert)
+			ObservableCollection<PeerGroup> peerGroups = this.profile.PeerGroups;
+			if (peerGroups.Count > 0 || this.EditPeerGroups())
 			{
-				statusRow = new StatusRow();
-			}
+				ObservableCollection<Location> locations = this.profile.Locations;
 
-			// TODO: Finish EditLocation. [Bill, 5/19/2020]
-			MessageBox.Show(nameof(this.EditItemExecuted) + " for " + statusRow.LocationName);
+				bool insert = statusRow == null;
+				Location location = insert ? null : locations.FirstOrDefault(l => l.Id == statusRow.LocationId);
+				int locationIndex = location == null ? -1 : locations.IndexOf(location);
+
+				LocationDialog dialog = new LocationDialog();
+				if (dialog.Execute(this, peerGroups, ref location))
+				{
+					if (location != null && peerGroups.Contains(location.PeerGroup))
+					{
+						if (locationIndex >= 0 && locationIndex < locations.Count)
+						{
+							locations[locationIndex] = location;
+						}
+						else
+						{
+							locations.Add(location);
+						}
+					}
+				}
+			}
+		}
+
+		private bool EditPeerGroups()
+		{
+			// TODO: Finish EditPeerGroups. [Bill, 5/21/2020]
+			WindowsUtility.ShowInfo(this, nameof(this.EditPeerGroups));
 			this.GetHashCode();
+			return false;
 		}
 
 		private string GenerateLogFileName()
@@ -378,6 +405,11 @@ namespace WirePeep
 			this.EditLocation(null);
 		}
 
+		private void EditPeerGroupsExecuted(object sender, ExecutedRoutedEventArgs e)
+		{
+			this.EditPeerGroups();
+		}
+
 		private void ExportLogCanExecute(object sender, CanExecuteRoutedEventArgs e) => e.CanExecute = this.logRows.Count > 0;
 
 		private void ExportLogExecuted(object sender, ExecutedRoutedEventArgs e)
@@ -394,6 +426,8 @@ namespace WirePeep
 				if (dialog.ShowDialog(this) ?? false)
 				{
 					Logger logger = new Logger(dialog.FileName, true);
+
+					using (new WaitCursor())
 					using (logger.BeginBatch())
 					{
 						foreach (LogRow logRow in this.logRows.Reverse())
@@ -466,20 +500,23 @@ namespace WirePeep
 					string caption = ApplicationInfo.ApplicationName;
 					if (WindowsUtility.ShowQuestion(this, message, caption))
 					{
-						this.profile.Locations.Remove(location);
-
-						// Note: Don't remove from this.statusRowMap here. Let the next Update cycle clean it up.
-						this.statusRows.Remove(statusRow);
-
-						if (deletePeerGroup)
+						using (new WaitCursor())
 						{
-							this.profile.PeerGroups.Remove(location.PeerGroup);
+							this.profile.Locations.Remove(location);
 
-							// Note: Don't remove from this.failedPeerGroupToLogRowMap. Let the next Update cycle clean it up.
-							LogRow[] removeLogRows = this.logRows.Where(row => row.PeerGroupId == location.PeerGroup.Id).ToArray();
-							foreach (LogRow row in removeLogRows)
+							// Note: Don't remove from this.statusRowMap here. Let the next Update cycle clean it up.
+							this.statusRows.Remove(statusRow);
+
+							if (deletePeerGroup)
 							{
-								this.logRows.Remove(row);
+								this.profile.PeerGroups.Remove(location.PeerGroup);
+
+								// Note: Don't remove from this.failedPeerGroupToLogRowMap. Let the next Update cycle clean it up.
+								LogRow[] removeLogRows = this.logRows.Where(row => row.PeerGroupId == location.PeerGroup.Id).ToArray();
+								foreach (LogRow row in removeLogRows)
+								{
+									this.logRows.Remove(row);
+								}
 							}
 						}
 					}

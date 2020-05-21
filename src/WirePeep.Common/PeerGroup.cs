@@ -29,9 +29,13 @@ namespace WirePeep
 
 		#region Constructors
 
-		internal PeerGroup(string name, TimeSpan fail, TimeSpan poll, TimeSpan wait, Guid? id = null)
+		public PeerGroup(string name, TimeSpan fail, TimeSpan poll, TimeSpan wait, Guid? id = null)
 		{
 			Conditions.RequireString(name, nameof(name));
+			Conditions.RequireArgument(fail > TimeSpan.Zero, "Fail time must be positive.");
+			Conditions.RequireArgument(poll > TimeSpan.Zero, "Poll time must be positive.");
+			Conditions.RequireArgument(wait > TimeSpan.Zero, "Wait time must be positive.");
+
 			this.Name = name;
 			this.Fail = fail;
 			this.Poll = poll;

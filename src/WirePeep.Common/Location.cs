@@ -19,10 +19,11 @@ namespace WirePeep
 	{
 		#region Constructors
 
-		internal Location(PeerGroup peerGroup, string name, IPAddress address, Guid? id = null)
+		public Location(PeerGroup peerGroup, string name, IPAddress address, Guid? id = null)
 		{
 			Conditions.RequireReference(peerGroup, nameof(peerGroup));
 			Conditions.RequireString(name, nameof(name));
+			Conditions.RequireReference(address, nameof(address));
 
 			this.PeerGroup = peerGroup;
 			this.Name = name;

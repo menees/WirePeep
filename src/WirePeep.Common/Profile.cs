@@ -62,6 +62,13 @@ namespace WirePeep
 			}
 		}
 
+		public void RevertToDefaults()
+		{
+			this.Locations.Clear();
+			this.PeerGroups.Clear();
+			this.LoadDefaults();
+		}
+
 		#endregion
 
 		#region Private Methods
