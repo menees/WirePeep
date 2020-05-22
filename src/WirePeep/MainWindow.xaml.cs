@@ -232,7 +232,7 @@ namespace WirePeep
 		private void EditLocation(StatusRow statusRow)
 		{
 			ObservableCollection<PeerGroup> peerGroups = this.profile.PeerGroups;
-			if (peerGroups.Count > 0 || this.EditPeerGroups())
+			if (peerGroups.Count > 0 || (this.EditPeerGroups() && peerGroups.Count > 0))
 			{
 				ObservableCollection<Location> locations = this.profile.Locations;
 
@@ -260,10 +260,9 @@ namespace WirePeep
 
 		private bool EditPeerGroups()
 		{
-			// TODO: Finish EditPeerGroups. [Bill, 5/21/2020]
-			WindowsUtility.ShowInfo(this, nameof(this.EditPeerGroups));
-			this.GetHashCode();
-			return false;
+			PeerGroupDialog dialog = new PeerGroupDialog();
+			bool result = dialog.Execute(this, this.profile.PeerGroups);
+			return result;
 		}
 
 		private string GenerateLogFileName()

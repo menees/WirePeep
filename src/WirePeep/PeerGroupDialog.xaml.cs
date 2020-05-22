@@ -1,0 +1,152 @@
+﻿#region Using Directives
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
+using Menees;
+using Menees.Windows.Presentation;
+
+#endregion
+
+namespace WirePeep
+{
+	public partial class PeerGroupDialog : ExtendedDialog
+	{
+		#region Constructors
+
+		public PeerGroupDialog()
+		{
+			this.InitializeComponent();
+		}
+
+		#endregion
+
+		#region Public Methods
+
+		public bool Execute(Window owner, IList<PeerGroup> peerGroups)
+		{
+			this.Owner = owner;
+
+			List<GridRow> rows = peerGroups.Select(group => new GridRow(group)).ToList();
+			this.grid.ItemsSource = rows;
+
+			bool result = false;
+			if (this.ShowDialog() ?? false)
+			{
+				// TODO: Finish Execute. [Bill, 5/21/2020]
+				result = true;
+			}
+
+			return result;
+		}
+
+		#endregion
+
+		#region Private Methods
+
+		private void OKClicked(object sender, RoutedEventArgs e)
+		{
+			// DialogResult = non-zero count, all names non-whitespace, all numbers positive and <= upper bound.
+			// TODO: Can't delete a peergroup if it's assigned to a location. [Bill, 5/22/2020]
+			// TODO: Finish OKClicked. [Bill, 5/21/2020]
+		}
+
+		#endregion
+
+		#region Private Types
+
+		private sealed class GridRow
+		{
+			#region Private Data Members
+
+			private const ushort DefaultPoll = 5;
+			private const ushort DefaultWait = 200;
+			private const ushort DefaultFail = 10;
+
+			private const ushort MaxPoll = 60 * 60;
+			private const ushort MaxWait = 10 * DefaultWait;
+			private const ushort MaxFail = 10 * MaxPoll;
+
+			private string name;
+			private ushort poll;
+			private ushort wait;
+			private ushort fail;
+
+			#endregion
+
+			#region Constructors
+
+			public GridRow()
+			{
+				// This is used by the DataGrid via reflection.
+				this.poll = DefaultPoll;
+				this.wait = DefaultWait;
+				this.fail = DefaultFail;
+				this.Id = Guid.NewGuid();
+			}
+
+			public GridRow(PeerGroup group)
+			{
+				this.name = group.Name;
+				this.poll = (ushort)group.Poll.TotalSeconds;
+				this.wait = (ushort)group.Wait.TotalMilliseconds;
+				this.fail = (ushort)group.Fail.TotalSeconds;
+				this.Id = group.Id;
+			}
+
+			#endregion
+
+			#region Public Properties
+
+			public string Name
+			{
+				get => this.name;
+				set => this.name = value?.Trim();
+			}
+
+			public ushort Poll
+			{
+				get => this.poll;
+				set => this.poll = Clamp(value, 1, MaxPoll);
+			}
+
+			public ushort Wait
+			{
+				get => this.wait;
+				set => this.wait = Clamp(value, 1, MaxWait);
+			}
+
+			public ushort Fail
+			{
+				get => this.fail;
+				set => this.fail = Clamp(value, 1, MaxFail);
+			}
+
+			#endregion
+
+			#region Internal Properties
+
+			internal Guid Id { get; }
+
+			#endregion
+
+			#region Private Methods
+
+			private static ushort Clamp(ushort value, ushort min, ushort max)
+				=> value < min ? min : (value > max ? max : value);
+
+			#endregion
+		}
+
+		#endregion
+	}
+}

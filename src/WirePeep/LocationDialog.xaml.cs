@@ -52,7 +52,7 @@ namespace WirePeep
 			if (this.ShowDialog() ?? false)
 			{
 				List<string> errors = new List<string>();
-				Location newLocation = this.TryGetLocation(errors, false, location?.Id);
+				Location newLocation = this.TryGetLocation(errors, location?.Id);
 				if (newLocation != null
 					&& errors.Count == 0
 					&& (location == null
@@ -72,7 +72,7 @@ namespace WirePeep
 
 		#region Private Methods
 
-		private Location TryGetLocation(IList<string> errors, bool ping, Guid? id = null)
+		private Location TryGetLocation(IList<string> errors, Guid? id = null)
 		{
 			string name = this.name.Text.Trim();
 			if (string.IsNullOrEmpty(name))
@@ -83,17 +83,6 @@ namespace WirePeep
 			if (!IPAddress.TryParse(this.address.Text.Trim(), out IPAddress address))
 			{
 				errors.Add("The address must be a valid IPv4 or IPv6 address.");
-			}
-			else if (ping)
-			{
-				const int WaitMilliseconds = 200;
-				using (Pinger pinger = new Pinger(TimeSpan.FromMilliseconds(WaitMilliseconds)))
-				{
-					if (!pinger.CanPing(address))
-					{
-						errors.Add("The specified address did not respond to a ping.");
-					}
-				}
 			}
 
 			PeerGroup peerGroup = this.peerGroups.SelectedItem as PeerGroup;
@@ -114,21 +103,38 @@ namespace WirePeep
 		{
 			List<string> errors = new List<string>();
 
+			Location location;
 			using (new WaitCursor())
 			{
-				if (this.TryGetLocation(errors, true) == null && errors.Count == 0)
+				location = this.TryGetLocation(errors);
+				if (location == null && errors.Count == 0)
 				{
 					errors.Add("Unable to create new location instance.");
 				}
 			}
 
-			if (errors.Count == 0)
+			if (errors.Count > 0)
 			{
-				this.DialogResult = true;
+				WindowsUtility.ShowError(this, string.Join(Environment.NewLine, errors));
 			}
 			else
 			{
-				WindowsUtility.ShowError(this, string.Join(Environment.NewLine, errors));
+				bool pingOk = true;
+				const int WaitMilliseconds = 200;
+				using (Pinger pinger = new Pinger(TimeSpan.FromMilliseconds(WaitMilliseconds)))
+				{
+					if (!pinger.CanPing(location.Address))
+					{
+						// Occasionally, a ping will be lost, and it's ok. The user might also want to configure
+						// a site to watch that is known to be intermittently available.
+						pingOk = WindowsUtility.ShowQuestion(this, "The specified address did not respond to a ping. Continue?", null, false);
+					}
+				}
+
+				if (pingOk)
+				{
+					this.DialogResult = true;
+				}
 			}
 		}
 
