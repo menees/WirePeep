@@ -6,14 +6,14 @@
 		xmlns:m="http://menees.com/xaml"
         xmlns:local="clr-namespace:WirePeep"
         mc:Ignorable="d"
-        Title="Options" Width="400" SizeToContent="Height" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"
+        Title="Options" Width="400" SizeToContent="Height"
 		FocusManager.FocusedElement="{Binding ElementName=logFolder}">
     <Grid>
 		<Grid.RowDefinitions>
 			<RowDefinition/>
 			<RowDefinition Height="Auto"/>
 		</Grid.RowDefinitions>
-		<GroupBox Header="Logging" Padding="12,6,12,12" Margin="12,6,12,0">
+		<GroupBox Header="Logging" Padding="12,6,12,12" Margin="12,6,12,12">
 			<StackPanel>
 				<Label Content="_Folder:" Target="{Binding ElementName=logFolder}"/>
 				<DockPanel>
@@ -28,9 +28,11 @@
 				</ComboBox>
 			</StackPanel>
 		</GroupBox>
-		<StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
-			<Button Content="_OK" Width="60" Margin="12,12,0,12" IsDefault="True" Click="OKClicked"/>
-			<Button Content="_Cancel" Width="60" Margin="12" IsCancel="True"/>
-		</StackPanel>
-    </Grid>
+		<Border Grid.Row="1" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
+			<StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+				<Button Content="_OK" Width="60" Margin="12,12,0,12" IsDefault="True" Click="OKClicked"/>
+				<Button Content="_Cancel" Width="60" Margin="12" IsCancel="True"/>
+			</StackPanel>
+		</Border>
+	</Grid>
 </m:ExtendedDialog>

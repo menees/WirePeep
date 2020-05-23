@@ -6,14 +6,14 @@
 		xmlns:m="http://menees.com/xaml"
         xmlns:local="clr-namespace:WirePeep"
         mc:Ignorable="d"
-        Title="Edit Location" Width="400" SizeToContent="Height" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"
+        Title="Edit Location" Width="400" SizeToContent="Height"
 		FocusManager.FocusedElement="{Binding ElementName=name}">
 	<Grid>
 		<Grid.RowDefinitions>
 			<RowDefinition/>
 			<RowDefinition Height="Auto"/>
 		</Grid.RowDefinitions>
-		<StackPanel Margin="12,0,12,0">
+		<StackPanel Margin="12,0,12,12">
 			<Label Content="_Name:" Target="{Binding ElementName=name}"/>
 			<TextBox x:Name="name" TabIndex="0"/>
 			<Label Content="IP _Address:" Target="{Binding ElementName=address}"/>
@@ -21,10 +21,12 @@
 			<Label Content="_Peer Group:" Target="{Binding ElementName=peerGroups}"/>
 			<ComboBox x:Name="peerGroups"/>
 		</StackPanel>
-		<StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
-			<Button Content="_OK" Width="60" Margin="12,12,0,12" IsDefault="True" Click="OKClicked"/>
-			<Button Content="_Cancel" Width="60" Margin="12" IsCancel="True"/>
-		</StackPanel>
+		<Border Grid.Row="1" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
+			<StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+				<Button Content="_OK" Width="60" Margin="12,12,0,12" IsDefault="True" Click="OKClicked"/>
+				<Button Content="_Cancel" Width="60" Margin="12" IsCancel="True"/>
+			</StackPanel>
+		</Border>
 	</Grid>
 
 </m:ExtendedDialog>

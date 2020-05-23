@@ -5,6 +5,7 @@
 		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 		xmlns:m="http://menees.com/xaml"
 		xmlns:local="clr-namespace:WirePeep"
+		xmlns:comp="clr-namespace:System.ComponentModel;assembly=WindowsBase"
 		mc:Ignorable="d"
 		Title="WirePeep - Network Downtime Monitor" Height="450" Width="800"
 		FocusManager.FocusedElement="{Binding ElementName=statusGrid}" Closing="ExtendedWindowClosing">
@@ -28,10 +29,17 @@
         <local:LogRowCollection x:Key="LogRows"/>
 
 		<!-- LiveGrouping is needed to auto-regroup when GroupName changes. https://stackoverflow.com/a/25551181/1882616. -->
-        <CollectionViewSource x:Key="StatusRowsView" Source="{StaticResource StatusRows}" IsLiveGroupingRequested="True">
+		<!-- LiveSorting is needed to auto-resort when GroupName or LocationName changes. -->
+		<CollectionViewSource x:Key="StatusRowsView" Source="{StaticResource StatusRows}" IsLiveGroupingRequested="True" IsLiveSortingRequested="True">
             <CollectionViewSource.GroupDescriptions>
                 <PropertyGroupDescription PropertyName="GroupName"/>
             </CollectionViewSource.GroupDescriptions>
+
+			<CollectionViewSource.SortDescriptions>
+				<comp:SortDescription PropertyName="GroupName"/>
+				<comp:SortDescription PropertyName="LocationName"/>
+				<comp:SortDescription PropertyName="LocationAddress"/>
+			</CollectionViewSource.SortDescriptions>
         </CollectionViewSource>
 
         <CollectionViewSource x:Key="LogRowsView" Source="{StaticResource LogRows}"/>

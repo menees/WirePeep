@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Windows;
@@ -35,7 +36,7 @@ namespace WirePeep
 		{
 			this.Owner = owner;
 
-			this.peerGroups.ItemsSource = peerGroups;
+			this.peerGroups.ItemsSource = peerGroups.OrderBy(group => group.Name).ToList();
 
 			if (location == null)
 			{

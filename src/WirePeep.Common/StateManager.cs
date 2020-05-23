@@ -247,7 +247,7 @@ namespace WirePeep
 			{
 				this.peerGroupToLocationsMap = this.Locations
 				.GroupBy(l => this.GetPeerGroupState(l.Location.PeerGroup))
-				.ToDictionary(group => group.Key, group => group.ToList());
+				.ToDictionary(group => group.Key, group => group.OrderBy(l => l.Location.Name).ToList());
 			}
 		}
 
