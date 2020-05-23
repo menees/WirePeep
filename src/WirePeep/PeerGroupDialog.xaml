@@ -18,7 +18,7 @@
 				  GridLinesVisibility="Horizontal" AutoGenerateColumns="False" CanUserReorderColumns="False" CanUserSortColumns="False" HeadersVisibility="Column"
 				  AlternatingRowBackground="{DynamicResource {x:Static SystemColors.InactiveBorderBrushKey}}" CanUserResizeRows="False" CanUserResizeColumns="False"
 				  HorizontalGridLinesBrush="{DynamicResource {x:Static SystemColors.ControlLightBrushKey}}" SelectionMode="Single"
-				  CommandManager.PreviewCanExecute="GridPreviewCanExecute">
+				  CommandManager.PreviewCanExecute="GridPreviewCanExecute" InitializingNewItem="GridInitializingNewItem">
 			<DataGrid.Resources>
 				<Style TargetType="TextBlock" x:Key="RightAlignCell">
 					<Setter Property="HorizontalAlignment" Value="Stretch"/>
@@ -32,7 +32,7 @@
 			</DataGrid.Resources>
 
 			<DataGrid.Columns>
-				<DataGridTextColumn Header="Peer Group" Binding="{Binding Name, TargetNullValue=(Enter a name)}" Width="*"/>
+				<DataGridTextColumn Header="Peer Group" Binding="{Binding Name, ValidatesOnExceptions=True}" Width="*"/>
 				<DataGridTextColumn Header="Poll (sec)" Binding="{Binding Poll, ValidatesOnExceptions=True}" ElementStyle="{StaticResource RightAlignCell}" EditingElementStyle="{StaticResource RightAlignEdit}"/>
 				<DataGridTextColumn Header="Wait (ms)" Binding="{Binding Wait, ValidatesOnExceptions=True}" ElementStyle="{StaticResource RightAlignCell}" EditingElementStyle="{StaticResource RightAlignEdit}"/>
 				<DataGridTextColumn Header="Fail (sec)" Binding="{Binding Fail, ValidatesOnExceptions=True}" ElementStyle="{StaticResource RightAlignCell}" EditingElementStyle="{StaticResource RightAlignEdit}"/>

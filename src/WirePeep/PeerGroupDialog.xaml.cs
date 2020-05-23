@@ -93,8 +93,7 @@ namespace WirePeep
 			if (e.Command == DataGrid.DeleteCommand)
 			{
 				// The new/insert row is an internal "NamedObject" object not a GridRow.
-				GridRow row = this.grid.SelectedItem as GridRow;
-				if (row != null)
+				if (this.grid.SelectedItem is GridRow row)
 				{
 					string[] usingLocations = this.profile.Locations.Where(l => l.PeerGroup.Id == row.Id).Select(l => l.Name).ToArray();
 					if (usingLocations.Length > 0)
@@ -107,6 +106,15 @@ namespace WirePeep
 						e.Handled = true;
 					}
 				}
+			}
+		}
+
+		private void GridInitializingNewItem(object sender, InitializingNewItemEventArgs e)
+		{
+			if (e.NewItem is GridRow row && string.IsNullOrEmpty(row.Name))
+			{
+				// We don't have to add 1 because the count already includes this row.
+				row.Name = $"Peer group {this.grid.ItemsSource.Cast<GridRow>().Count()}";
 			}
 		}
 
@@ -166,7 +174,18 @@ namespace WirePeep
 			public string Name
 			{
 				get => this.name;
-				set => this.name = value?.Trim();
+
+				set
+				{
+					string scrubbed = value?.Trim();
+					if (string.IsNullOrEmpty(scrubbed))
+					{
+						// TODO: Why doesn't this put a red box around the cell? [Bill, 5/22/2020]
+						throw new FormatException("Please enter a peer group name.");
+					}
+
+					this.name = scrubbed;
+				}
 			}
 
 			public ushort Poll
