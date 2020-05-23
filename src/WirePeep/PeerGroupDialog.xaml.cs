@@ -89,17 +89,30 @@ namespace WirePeep
 
 		private void GridPreviewCanExecute(object sender, CanExecuteRoutedEventArgs e)
 		{
+			// Idea came from https://stackoverflow.com/a/33187654/1882616.
 			if (e.Command == DataGrid.DeleteCommand)
 			{
-				// TODO: Don't allow delete if peer group is still in use by this.profile.Locations. [Bill, 5/22/2020]
-				this.GetHashCode();
+				// The new/insert row is an internal "NamedObject" object not a GridRow.
+				GridRow row = this.grid.SelectedItem as GridRow;
+				if (row != null)
+				{
+					string[] usingLocations = this.profile.Locations.Where(l => l.PeerGroup.Id == row.Id).Select(l => l.Name).ToArray();
+					if (usingLocations.Length > 0)
+					{
+						string suffix = usingLocations.Length == 1 ? string.Empty : "s";
+						string locations = string.Join("\n", usingLocations);
+						WindowsUtility.ShowInfo(
+							this,
+							$"Peer group \"{row.Name}\" can't be deleted because it is still in use by the following location{suffix}:\n\n{locations}");
+						e.Handled = true;
+					}
+				}
 			}
 		}
 
 		private void OKClicked(object sender, RoutedEventArgs e)
 		{
 			// DialogResult = non-zero count, all names non-whitespace, all numbers positive and <= upper bound.
-			// TODO: Can't delete a peergroup if it's assigned to a location. [Bill, 5/22/2020]
 			// TODO: Finish OKClicked. [Bill, 5/21/2020]
 		}
 
