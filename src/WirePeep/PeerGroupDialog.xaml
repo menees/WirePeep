@@ -15,7 +15,7 @@
 		</Grid.RowDefinitions>
 
 		<DataGrid x:Name="grid" Margin="12,12,12,0" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}"
-				  GridLinesVisibility="Horizontal" AutoGenerateColumns="False" CanUserReorderColumns="False" CanUserSortColumns="False" HeadersVisibility="Column"
+				  GridLinesVisibility="Horizontal" AutoGenerateColumns="False" CanUserReorderColumns="False" CanUserSortColumns="False"
 				  AlternatingRowBackground="{DynamicResource {x:Static SystemColors.InactiveBorderBrushKey}}" CanUserResizeRows="False" CanUserResizeColumns="False"
 				  HorizontalGridLinesBrush="{DynamicResource {x:Static SystemColors.ControlLightBrushKey}}" SelectionMode="Single"
 				  CommandManager.PreviewCanExecute="GridPreviewCanExecute" InitializingNewItem="GridInitializingNewItem">
@@ -32,7 +32,24 @@
 			</DataGrid.Resources>
 
 			<DataGrid.Columns>
-				<DataGridTextColumn Header="Peer Group" Binding="{Binding Name, ValidatesOnExceptions=True}" Width="*"/>
+				<DataGridTextColumn Header="Peer Group" Width="*">
+					<DataGridTextColumn.Binding>
+						<Binding Path="Name">
+							<Binding.ValidationRules>
+								<!-- To get a red border around the cell's TextBox, we have to validate the value before it is assigned
+								to the GridRow's Name property. If we wait for the assignment to throw an exception, the edit mode is
+								over and the visual is back to a TextBlock (with no red border). Forcing a manual ValidationRule does
+								the trick. It's not necessary for the other columns because they're ushort values, so WPF knows it has
+								to do a string-to-UInt16 converter before it finishes edit mode and tries the property assignment.
+								https://docs.microsoft.com/en-us/dotnet/api/system.windows.controls.validation.errors#remarks -->
+								<m:NonEmptyTextValidationRule ErrorMessage="Please enter a peer group name."/>
+								<!-- This validation rule is useful if the Name property setter throws some exception, but that will be
+								after the edit mode is finished. -->
+								<ExceptionValidationRule/>
+							</Binding.ValidationRules>
+						</Binding>
+					</DataGridTextColumn.Binding>
+				</DataGridTextColumn>
 				<DataGridTextColumn Header="Poll (sec)" Binding="{Binding Poll, ValidatesOnExceptions=True}" ElementStyle="{StaticResource RightAlignCell}" EditingElementStyle="{StaticResource RightAlignEdit}"/>
 				<DataGridTextColumn Header="Wait (ms)" Binding="{Binding Wait, ValidatesOnExceptions=True}" ElementStyle="{StaticResource RightAlignCell}" EditingElementStyle="{StaticResource RightAlignEdit}"/>
 				<DataGridTextColumn Header="Fail (sec)" Binding="{Binding Fail, ValidatesOnExceptions=True}" ElementStyle="{StaticResource RightAlignCell}" EditingElementStyle="{StaticResource RightAlignEdit}"/>

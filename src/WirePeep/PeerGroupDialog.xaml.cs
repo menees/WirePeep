@@ -120,8 +120,22 @@ namespace WirePeep
 
 		private void OKClicked(object sender, RoutedEventArgs e)
 		{
-			// DialogResult = non-zero count, all names non-whitespace, all numbers positive and <= upper bound.
-			// TODO: Finish OKClicked. [Bill, 5/21/2020]
+			List<string> errors = new List<string>();
+
+			ISet<ValidationError> validationErrors = WindowsUtility.GetValidationErrors(this.grid);
+			foreach (ValidationError error in validationErrors)
+			{
+				errors.Add(error.ErrorContent?.ToString() ?? "Validation error");
+			}
+
+			if (errors.Count == 0)
+			{
+				this.DialogResult = true;
+			}
+			else
+			{
+				WindowsUtility.ShowError(this, string.Join("\n", errors));
+			}
 		}
 
 		#endregion
@@ -180,7 +194,6 @@ namespace WirePeep
 					string scrubbed = value?.Trim();
 					if (string.IsNullOrEmpty(scrubbed))
 					{
-						// TODO: Why doesn't this put a red box around the cell? [Bill, 5/22/2020]
 						throw new FormatException("Please enter a peer group name.");
 					}
 
@@ -220,9 +233,9 @@ namespace WirePeep
 			{
 				return new PeerGroup(
 					this.Name,
+					TimeSpan.FromSeconds(this.Fail),
 					TimeSpan.FromSeconds(this.Poll),
 					TimeSpan.FromMilliseconds(this.Wait),
-					TimeSpan.FromSeconds(this.Fail),
 					this.Id);
 			}
 
