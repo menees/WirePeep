@@ -261,7 +261,7 @@ namespace WirePeep
 		private bool EditPeerGroups()
 		{
 			PeerGroupDialog dialog = new PeerGroupDialog();
-			bool result = dialog.Execute(this, this.profile.PeerGroups);
+			bool result = dialog.Execute(this, this.profile);
 			return result;
 		}
 

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Windows;
@@ -21,6 +22,12 @@ namespace WirePeep
 {
 	public partial class PeerGroupDialog : ExtendedDialog
 	{
+		#region Private Data Members
+
+		private Profile profile;
+
+		#endregion
+
 		#region Constructors
 
 		public PeerGroupDialog()
@@ -32,17 +39,44 @@ namespace WirePeep
 
 		#region Public Methods
 
-		public bool Execute(Window owner, IList<PeerGroup> peerGroups)
+		public bool Execute(Window owner, Profile profile)
 		{
 			this.Owner = owner;
+			this.profile = profile;
 
-			List<GridRow> rows = peerGroups.Select(group => new GridRow(group)).ToList();
+			ObservableCollection<PeerGroup> peerGroups = profile.PeerGroups;
+			List<GridRow> rows = peerGroups.OrderBy(g => g.Name).Select(g => new GridRow(g)).ToList();
 			this.grid.ItemsSource = rows;
 
 			bool result = false;
 			if (this.ShowDialog() ?? false)
 			{
-				// TODO: Finish Execute. [Bill, 5/21/2020]
+				HashSet<PeerGroup> usedGroups = new HashSet<PeerGroup>();
+				foreach (GridRow row in rows)
+				{
+					PeerGroup rowGroup = row.CreateGroup();
+					PeerGroup existingGroup = peerGroups.FirstOrDefault(g => g.Id == row.Id);
+					if (existingGroup == null)
+					{
+						peerGroups.Add(rowGroup);
+						usedGroups.Add(rowGroup);
+					}
+					else if (existingGroup.Name != rowGroup.Name
+						|| existingGroup.Poll != rowGroup.Poll
+						|| existingGroup.Wait != rowGroup.Wait
+						|| existingGroup.Fail != rowGroup.Fail)
+					{
+						int index = peerGroups.IndexOf(existingGroup);
+						peerGroups[index] = rowGroup;
+						usedGroups.Add(rowGroup);
+					}
+				}
+
+				foreach (PeerGroup group in peerGroups.Where(g => !usedGroups.Contains(g)).ToArray())
+				{
+					peerGroups.Remove(group);
+				}
+
 				result = true;
 			}
 
@@ -52,6 +86,15 @@ namespace WirePeep
 		#endregion
 
 		#region Private Methods
+
+		private void GridPreviewCanExecute(object sender, CanExecuteRoutedEventArgs e)
+		{
+			if (e.Command == DataGrid.DeleteCommand)
+			{
+				// TODO: Don't allow delete if peer group is still in use by this.profile.Locations. [Bill, 5/22/2020]
+				this.GetHashCode();
+			}
+		}
 
 		private void OKClicked(object sender, RoutedEventArgs e)
 		{
@@ -136,6 +179,20 @@ namespace WirePeep
 			#region Internal Properties
 
 			internal Guid Id { get; }
+
+			#endregion
+
+			#region Public Methods
+
+			public PeerGroup CreateGroup()
+			{
+				return new PeerGroup(
+					this.Name,
+					TimeSpan.FromSeconds(this.Poll),
+					TimeSpan.FromMilliseconds(this.Wait),
+					TimeSpan.FromSeconds(this.Fail),
+					this.Id);
+			}
 
 			#endregion
 

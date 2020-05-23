@@ -16,7 +16,9 @@
 
 		<DataGrid x:Name="grid" Margin="12,12,12,0" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}"
 				  GridLinesVisibility="Horizontal" AutoGenerateColumns="False" CanUserReorderColumns="False" CanUserSortColumns="False" HeadersVisibility="Column"
-				  AlternatingRowBackground="{DynamicResource {x:Static SystemColors.InactiveBorderBrushKey}}">
+				  AlternatingRowBackground="{DynamicResource {x:Static SystemColors.InactiveBorderBrushKey}}" CanUserResizeRows="False" CanUserResizeColumns="False"
+				  HorizontalGridLinesBrush="{DynamicResource {x:Static SystemColors.ControlLightBrushKey}}" SelectionMode="Single"
+				  CommandManager.PreviewCanExecute="GridPreviewCanExecute">
 			<DataGrid.Resources>
 				<Style TargetType="TextBlock" x:Key="RightAlignCell">
 					<Setter Property="HorizontalAlignment" Value="Stretch"/>
