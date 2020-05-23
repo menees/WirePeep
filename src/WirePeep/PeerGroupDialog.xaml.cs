@@ -70,6 +70,10 @@ namespace WirePeep
 						peerGroups[index] = rowGroup;
 						usedGroups.Add(rowGroup);
 					}
+					else
+					{
+						usedGroups.Add(existingGroup);
+					}
 				}
 
 				foreach (PeerGroup group in peerGroups.Where(g => !usedGroups.Contains(g)).ToArray())

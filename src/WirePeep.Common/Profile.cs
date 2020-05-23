@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
@@ -31,6 +32,8 @@ namespace WirePeep
 			{
 				this.LoadDefaults();
 			}
+
+			this.PeerGroups.CollectionChanged += this.PeerGroupsCollectionChanged;
 		}
 
 		#endregion
@@ -184,6 +187,72 @@ namespace WirePeep
 						AddLocation(location);
 					}
 				}
+			}
+		}
+
+		#endregion
+
+		#region Private Event Handlers
+
+		private void PeerGroupsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+		{
+			List<Location> toRemove = null;
+
+			switch (e.Action)
+			{
+				case NotifyCollectionChangedAction.Remove:
+					// Remove any locations using the removed peer groups. The UI should prevent this from occurring.
+					IEnumerable<PeerGroup> oldItems = e.OldItems.Cast<PeerGroup>();
+					toRemove = new List<Location>();
+					foreach (Location location in this.Locations.Where(l => oldItems.Any(g => g == l.PeerGroup)))
+					{
+						toRemove.Add(location);
+					}
+
+					break;
+
+				case NotifyCollectionChangedAction.Replace:
+					// Replace any locations that are using the replaced peer groups.
+					oldItems = e.OldItems.Cast<PeerGroup>();
+					IEnumerable<PeerGroup> newItems = e.NewItems.Cast<PeerGroup>();
+					var pairs = oldItems.Zip(newItems, (o, n) => Tuple.Create(o, n)).ToArray();
+					int numLocations = this.Locations.Count;
+					for (int i = 0; i < numLocations; i++)
+					{
+						Location currentLocation = this.Locations[i];
+						PeerGroup replacement = pairs.FirstOrDefault(p => p.Item1 == currentLocation.PeerGroup)?.Item2;
+						if (replacement != null)
+						{
+							this.Locations[i] = new Location(replacement, currentLocation.Name, currentLocation.Address, currentLocation.Id);
+						}
+					}
+
+					break;
+
+				case NotifyCollectionChangedAction.Reset:
+					// Update all locations. Use latest peer group with matching Id. Delete non-matches.
+					numLocations = this.Locations.Count;
+					var idToGroupMap = this.PeerGroups.ToDictionary(g => g.Id);
+					toRemove = new List<Location>();
+					for (int i = 0; i < numLocations; i++)
+					{
+						Location currentLocation = this.Locations[i];
+						if (idToGroupMap.TryGetValue(currentLocation.PeerGroup.Id, out PeerGroup replacement))
+						{
+							this.Locations[i] = new Location(replacement, currentLocation.Name, currentLocation.Address, currentLocation.Id);
+						}
+						else
+						{
+							toRemove.Add(currentLocation);
+						}
+					}
+
+					break;
+			}
+
+			foreach (Location location in toRemove ?? Enumerable.Empty<Location>())
+			{
+				this.Locations.Remove(location);
 			}
 		}
 
