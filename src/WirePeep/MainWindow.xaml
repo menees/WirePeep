@@ -273,9 +273,9 @@
 
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Peer Group" Binding="{Binding PeerGroupName}" ElementStyle="{StaticResource RedIfActive}"/>
-                <DataGridTextColumn Header="Start" Binding="{Binding FailStarted}" ElementStyle="{StaticResource RedIfActive}"/>
+                <DataGridTextColumn Header="Start" Binding="{Binding FailStartedLocal}" ElementStyle="{StaticResource RedIfActive}"/>
                 <DataGridTextColumn Header="Length" Binding="{Binding Length}" ElementStyle="{StaticResource RedIfActive-RightAlign}"/>
-                <DataGridTextColumn Header="End" Binding="{Binding FailEnded}" ElementStyle="{StaticResource RedIfActive}"/>
+                <DataGridTextColumn Header="End" Binding="{Binding FailEndedLocal}" ElementStyle="{StaticResource RedIfActive}"/>
                 <DataGridTextColumn Header="Since Previous" Binding="{Binding SincePrevious}" ElementStyle="{StaticResource RedIfActive-RightAlign}"/>
                 <DataGridTextColumn Header="Comment" Binding="{Binding Comment}" ElementStyle="{StaticResource RedIfActive}"/>
             </DataGrid.Columns>

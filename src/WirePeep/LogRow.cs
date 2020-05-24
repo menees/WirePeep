@@ -39,11 +39,35 @@ namespace WirePeep
 
 		public string PeerGroupName { get => this.peerGroupName; set => this.Update(ref this.peerGroupName, value); }
 
-		public DateTime FailStarted { get => this.failStarted; set => this.Update(ref this.failStarted, value); }
+		public DateTime FailStarted
+		{
+			get => this.failStarted;
+			set
+			{
+				if (this.Update(ref this.failStarted, value))
+				{
+					this.OnPropertyChanged(nameof(this.FailStartedLocal));
+				}
+			}
+		}
+
+		public DateTime FailStartedLocal => this.failStarted.ToLocalTime();
 
 		public TimeSpan Length { get => this.length; set => this.Update(ref this.length, value); }
 
-		public DateTime? FailEnded { get => this.failEnded; set => this.Update(ref this.failEnded, value); }
+		public DateTime? FailEnded
+		{
+			get => this.failEnded;
+			set
+			{
+				if (this.Update(ref this.failEnded, value))
+				{
+					this.OnPropertyChanged(nameof(this.FailEndedLocal));
+				}
+			}
+		}
+
+		public DateTime? FailEndedLocal => this.failEnded?.ToLocalTime();
 
 		public TimeSpan? SincePrevious { get => this.sincePrevious; set => this.Update(ref this.sincePrevious, value); }
 
