@@ -26,6 +26,8 @@ using Microsoft.Win32;
 
 namespace WirePeep
 {
+	// TODO: Apply StartMinimized. [Bill, 5/25/2020]
+	// TODO: Apply MinimizeToTray. [Bill, 5/25/2020]
 	public sealed partial class MainWindow : ExtendedWindow, IDisposable
 	{
 		#region Private Data Members
@@ -36,7 +38,8 @@ namespace WirePeep
 		private readonly LogRowCollection logRows;
 		private readonly Dictionary<Guid, LogRow> failedPeerGroupToLogRowMap;
 
-		private Options options;
+		private AppOptions appOptions;
+		private CommonOptions commonOptions;
 		private Profile profile;
 		private StateManager stateManager;
 		private Timer backgroundTimer;
@@ -46,6 +49,7 @@ namespace WirePeep
 		private DataGrid selectedGrid;
 		private Logger logger;
 		private int failureId;
+		private MediaPlayer mediaPlayer;
 
 		#endregion
 
@@ -138,7 +142,7 @@ namespace WirePeep
 			this.monitoredTime.Text = monitored.ToString();
 
 			// Optionally, simulate a failure when ScrollLock is toggled on.
-			this.simulateFailure = this.options.ScrollLockSimulatesFailure && Keyboard.IsKeyToggled(Key.Scroll);
+			this.simulateFailure = this.commonOptions.ScrollLockSimulatesFailure && Keyboard.IsKeyToggled(Key.Scroll);
 		}
 
 		private void UpdateStatusRows(StateSnapshot states)
@@ -175,6 +179,8 @@ namespace WirePeep
 
 		private void UpdateLogRows(IEnumerable<PeerGroupState> peerGroupStates)
 		{
+			List<PeerGroupState> failedChanged = new List<PeerGroupState>(0);
+
 			HashSet<Guid> currentPeerGroups = new HashSet<Guid>(this.failedPeerGroupToLogRowMap.Comparer);
 			foreach (PeerGroupState peerGroupState in peerGroupStates)
 			{
@@ -188,6 +194,7 @@ namespace WirePeep
 					{
 						this.failedPeerGroupToLogRowMap.Remove(peerGroupId);
 						this.logger?.AddFailureEnd(row.PeerGroupName, row.FailEnded.Value, row.FailureId, ConvertUtility.RoundToSeconds(row.Length));
+						failedChanged.Add(peerGroupState);
 					}
 				}
 				else if (peerGroupState.IsFailed)
@@ -199,6 +206,7 @@ namespace WirePeep
 					this.failedPeerGroupToLogRowMap.Add(peerGroupId, row);
 					TimeSpan? sincePrevious = row.SincePrevious != null ? ConvertUtility.RoundToSeconds(row.SincePrevious.Value) : (TimeSpan?)null;
 					this.logger?.AddFailureStart(row.PeerGroupName, row.FailStarted, row.FailureId, sincePrevious);
+					failedChanged.Add(peerGroupState);
 				}
 
 				currentPeerGroups.Add(peerGroupId);
@@ -207,6 +215,22 @@ namespace WirePeep
 			foreach (Guid peerGroupId in this.failedPeerGroupToLogRowMap.Keys.Where(key => !currentPeerGroups.Contains(key)).ToArray())
 			{
 				this.failedPeerGroupToLogRowMap.Remove(peerGroupId);
+			}
+
+			foreach (var group in failedChanged.GroupBy(g => g.IsFailed))
+			{
+				AlertOptions alertOptions = group.Key ? this.appOptions.FailureOptions : this.appOptions.ReconnectOptions;
+
+				StringBuilder sb = new StringBuilder("The following peer groups ");
+				sb.Append(group.Key ? "are no longer connected:" : "have reconnected:");
+				sb.AppendLine();
+				foreach (PeerGroupState peerGroupState in group)
+				{
+					sb.Append(peerGroupState.PeerGroup.Name);
+				}
+
+				// TODO: Pass in a NotifyIcon [Bill, 5/25/2020]
+				alertOptions.Alert(this, sb.ToString(), null, ref this.mediaPlayer);
 			}
 		}
 
@@ -268,7 +292,7 @@ namespace WirePeep
 		private string GenerateLogFileName()
 		{
 			DateTime started = this.stateManager.Started;
-			string result = this.options.GetFullLogFileName(started);
+			string result = this.commonOptions.GetFullLogFileName(started);
 			return result;
 		}
 
@@ -327,7 +351,8 @@ namespace WirePeep
 		private void SaverLoadSettings(object sender, SettingsEventArgs e)
 		{
 			var settings = e.SettingsNode;
-			this.options = new Options(settings.GetSubNode(nameof(Options), false));
+			this.appOptions = new AppOptions(settings.GetSubNode(nameof(AppOptions), false));
+			this.commonOptions = new CommonOptions(settings.GetSubNode(nameof(CommonOptions), false));
 			this.profile = new Profile(settings.GetSubNode(nameof(Profile), false));
 
 			ISettingsNode splitterNode = settings.GetSubNode(nameof(GridSplitter), false);
@@ -351,13 +376,16 @@ namespace WirePeep
 			string logFileName = this.GenerateLogFileName();
 			this.OpenLogger(logFileName);
 			this.backgroundTimer = new Timer(this.BackgroundTimerCallback, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+
+			this.appOptions.Apply(this);
 		}
 
 		private void SaverSaveSettings(object sender, SettingsEventArgs e)
 		{
 			var settings = e.SettingsNode;
 			this.profile?.Save(settings.GetSubNode(nameof(Profile), true));
-			this.options?.Save(settings.GetSubNode(nameof(Options), true));
+			this.appOptions?.Save(settings.GetSubNode(nameof(AppOptions), true));
+			this.commonOptions?.Save(settings.GetSubNode(nameof(CommonOptions), true));
 
 			settings.DeleteSubNode(nameof(GridSplitter));
 			ISettingsNode splitterNode = settings.GetSubNode(nameof(GridSplitter), true);
@@ -387,10 +415,11 @@ namespace WirePeep
 		private void ViewOptionsExecuted(object sender, ExecutedRoutedEventArgs e)
 		{
 			OptionsDialog dialog = new OptionsDialog();
-			if (dialog.Execute(this, this.options))
+			if (dialog.Execute(this, this.appOptions, this.commonOptions))
 			{
 				this.saver.Save();
 				this.UpdateLogger();
+				this.appOptions.Apply(this);
 			}
 		}
 
@@ -583,5 +612,10 @@ namespace WirePeep
 		}
 
 		#endregion
+
+		private void ExtendedWindowActivated(object sender, EventArgs e)
+		{
+			// TODO: Clear taskbar color. [Bill, 5/25/2020]
+		}
 	}
 }

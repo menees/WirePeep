@@ -7,16 +7,89 @@
         xmlns:local="clr-namespace:WirePeep"
         mc:Ignorable="d"
         Title="Options" Width="400" SizeToContent="Height"
-		FocusManager.FocusedElement="{Binding ElementName=logFolder}">
+		FocusManager.FocusedElement="{Binding ElementName=runAtLogin}">
+	<Window.Resources>
+		<Style x:Key="GroupBoxStyle" TargetType="GroupBox">
+			<Setter Property="Padding" Value="12,6,12,6"/>
+			<Setter Property="Margin" Value="12,0,12,12"/>
+		</Style>
+	</Window.Resources>
+
     <Grid>
 		<Grid.RowDefinitions>
 			<RowDefinition/>
+			<RowDefinition/>
+			<RowDefinition/>
 			<RowDefinition Height="Auto"/>
 		</Grid.RowDefinitions>
-		<GroupBox Header="Logging" Padding="12,6,12,12" Margin="12,6,12,12">
+
+		<GroupBox Header="Application" Grid.Row="0" Style="{StaticResource GroupBoxStyle}"  Margin="12,6,12,12">
+			<StackPanel>
+				<CheckBox x:Name="runAtLogin" Content="Run when user logs in"/>
+				<CheckBox x:Name="startMinimized" Content="Start minimized"/>
+				<CheckBox x:Name="minimizeToTray" Content="Minimize to notification tray"/>
+				<CheckBox x:Name="alwaysOnTop" Content="Always on top"/>
+			</StackPanel>
+		</GroupBox>
+
+		<GroupBox Header="Alerts" Grid.Row="1" Style="{StaticResource GroupBoxStyle}">
+			<Grid>
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="170"/>
+					<ColumnDefinition/>
+					<ColumnDefinition/>
+				</Grid.ColumnDefinitions>
+				<Grid.RowDefinitions>
+					<RowDefinition/>
+					<RowDefinition/>
+					<RowDefinition/>
+					<RowDefinition/>
+					<RowDefinition/>
+				</Grid.RowDefinitions>
+
+				<TextBlock Grid.Row="0" Grid.Column="0" Text="Option">
+					<TextBlock.TextDecorations>
+						<TextDecoration/>
+					</TextBlock.TextDecorations>
+				</TextBlock>
+				<TextBlock Grid.Row="0" Grid.Column="1" Text="On Failure">
+                    <TextBlock.TextDecorations>
+                        <TextDecoration/>
+                    </TextBlock.TextDecorations>
+                </TextBlock>
+				<TextBlock Grid.Row="0" Grid.Column="2" Text="On Reconnect">
+					<TextBlock.TextDecorations>
+						<TextDecoration/>
+					</TextBlock.TextDecorations>
+				</TextBlock>
+
+				<TextBlock Grid.Row="1" Grid.Column="0" Text="Show window"/>
+				<CheckBox x:Name="showWindowOnFailure" Grid.Row="1" Grid.Column="1" />
+				<CheckBox x:Name="showWindowOnReconnect" Grid.Row="1" Grid.Column="2" />
+
+				<TextBlock Grid.Row="2" Grid.Column="0" Text="Show notification message"/>
+				<CheckBox x:Name="showNotificationOnFailure" Grid.Row="2" Grid.Column="1" />
+				<CheckBox x:Name="showNotificationOnReconnect" Grid.Row="2" Grid.Column="2" />
+
+				<TextBlock Grid.Row="3" Grid.Column="0" Text="Color inactive taskbar item"/>
+				<CheckBox x:Name="colorTaskbarOnFailure" Grid.Row="3" Grid.Column="1" Content="Red" />
+				<CheckBox x:Name="colorTaskbarOnReconnect" Grid.Row="3" Grid.Column="2" Content="Green"/>
+
+				<TextBlock Grid.Row="4" Grid.Column="0" Text="Play sound"/>
+				<CheckBox x:Name="playSoundOnFailure" Grid.Row="4" Grid.Column="1">
+					<Button x:Name="soundOnFailure" Content="..." Width="20" Click="SoundOnFailureClicked"/>
+				</CheckBox>
+				<CheckBox x:Name="playSoundOnReconnect" Grid.Row="4" Grid.Column="2">
+					<Button x:Name="soundOnReconnect" Content="..." Width="20" Click="SoundOnReconnectClicked"/>
+				</CheckBox>
+			</Grid>
+		</GroupBox>
+
+		<GroupBox Header="Logging" Grid.Row="2" Style="{StaticResource GroupBoxStyle}">
 			<StackPanel>
 				<Label Content="_Folder:" Target="{Binding ElementName=logFolder}"/>
-				<DockPanel>
+				<!-- Local tab navigation tip came from: https://stackoverflow.com/a/4808810/1882616 -->
+				<DockPanel KeyboardNavigation.TabNavigation="Local">
 					<Button Content="..." DockPanel.Dock="Right" Width="20" Margin="12,0,0,0" Click="SelectLogFolderClicked" TabIndex="1"/>
 					<TextBox x:Name="logFolder" TabIndex="0"/>
 				</DockPanel>
@@ -28,7 +101,8 @@
 				</ComboBox>
 			</StackPanel>
 		</GroupBox>
-		<Border Grid.Row="1" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
+
+		<Border Grid.Row="3" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
 			<StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
 				<Button Content="_OK" Width="60" Margin="12,12,0,12" IsDefault="True" Click="OKClicked"/>
 				<Button Content="_Cancel" Width="60" Margin="12" IsCancel="True"/>

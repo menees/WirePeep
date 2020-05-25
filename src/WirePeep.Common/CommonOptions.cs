@@ -11,24 +11,24 @@ using Menees;
 
 namespace WirePeep
 {
-	public sealed class Options
+	public sealed class CommonOptions
 	{
 		#region Private Data Members
 
-		private LogFileNameFormat logFileNameFormat;
+		private LogFileNameFormat logFileNameFormat = LogFileNameFormat.UtcNow;
 		private string logFolder;
 
 		#endregion
 
 		#region Constructors
 
-		public Options(ISettingsNode settingsNode)
+		public CommonOptions(ISettingsNode settingsNode)
 		{
 			if (settingsNode != null)
 			{
-				this.logFileNameFormat = settingsNode.GetValue(nameof(this.LogFileNameFormat), LogFileNameFormat.UtcNow);
+				this.logFileNameFormat = settingsNode.GetValue(nameof(this.LogFileNameFormat), this.LogFileNameFormat);
 				this.logFolder = settingsNode.GetValue(nameof(this.LogFolder), string.Empty);
-				this.ScrollLockSimulatesFailure = settingsNode.GetValue(nameof(this.ScrollLockSimulatesFailure), ApplicationInfo.IsDebugBuild);
+				this.ScrollLockSimulatesFailure = settingsNode.GetValue(nameof(this.ScrollLockSimulatesFailure), this.ScrollLockSimulatesFailure);
 			}
 
 			this.ValidateLogFileNameFormat();
@@ -67,7 +67,7 @@ namespace WirePeep
 			}
 		}
 
-		public bool ScrollLockSimulatesFailure { get; set; }
+		public bool ScrollLockSimulatesFailure { get; set; } = ApplicationInfo.IsDebugBuild;
 
 		#endregion
 
