@@ -63,24 +63,51 @@
 					</TextBlock.TextDecorations>
 				</TextBlock>
 
-				<TextBlock Grid.Row="1" Grid.Column="0" Text="Show window"/>
+				<TextBlock Grid.Row="1" Grid.Column="0" Text="Activate and show window"/>
 				<CheckBox x:Name="showWindowOnFailure" Grid.Row="1" Grid.Column="1" />
 				<CheckBox x:Name="showWindowOnReconnect" Grid.Row="1" Grid.Column="2" />
 
-				<TextBlock Grid.Row="2" Grid.Column="0" Text="Show notification message"/>
-				<CheckBox x:Name="showNotificationOnFailure" Grid.Row="2" Grid.Column="1" />
-				<CheckBox x:Name="showNotificationOnReconnect" Grid.Row="2" Grid.Column="2" />
+				<TextBlock Grid.Row="2" Grid.Column="0" Text="Color inactive taskbar item"/>
+				<CheckBox x:Name="colorTaskbarOnFailure" Grid.Row="2" Grid.Column="1" Content="Red">
+					<CheckBox.Style>
+						<Style TargetType="CheckBox">
+							<Style.Triggers>
+								<DataTrigger Binding="{Binding IsChecked, ElementName=showWindowOnFailure}" Value="True">
+									<Setter Property="IsEnabled" Value="False"/>
+								</DataTrigger>
+							</Style.Triggers>
+						</Style>
+					</CheckBox.Style>
+				</CheckBox>
+				<CheckBox x:Name="colorTaskbarOnReconnect" Grid.Row="2" Grid.Column="2" Content="Green">
+					<CheckBox.Style>
+						<Style TargetType="CheckBox">
+							<Style.Triggers>
+								<DataTrigger Binding="{Binding IsChecked, ElementName=showWindowOnReconnect}" Value="True">
+									<Setter Property="IsEnabled" Value="False"/>
+								</DataTrigger>
+							</Style.Triggers>
+						</Style>
+					</CheckBox.Style>
+				</CheckBox>
 
-				<TextBlock Grid.Row="3" Grid.Column="0" Text="Color inactive taskbar item"/>
-				<CheckBox x:Name="colorTaskbarOnFailure" Grid.Row="3" Grid.Column="1" Content="Red" />
-				<CheckBox x:Name="colorTaskbarOnReconnect" Grid.Row="3" Grid.Column="2" Content="Green"/>
+				<TextBlock Grid.Row="3" Grid.Column="0" Text="Show notification message"/>
+				<CheckBox x:Name="showNotificationOnFailure" Grid.Row="3" Grid.Column="1" />
+				<CheckBox x:Name="showNotificationOnReconnect" Grid.Row="3" Grid.Column="2" />
 
 				<TextBlock Grid.Row="4" Grid.Column="0" Text="Play sound"/>
 				<CheckBox x:Name="playSoundOnFailure" Grid.Row="4" Grid.Column="1">
-					<Button x:Name="soundOnFailure" Content="..." Width="20" Click="SoundOnFailureClicked"/>
+					<StackPanel Orientation="Horizontal">
+						<Button x:Name="soundOnFailure" Content="..." Width="20" Click="SelectFailureClicked"/>
+						<!-- "Black Right-Pointing Triangle" https://www.fileformat.info/info/unicode/char/25b6/index.htm -->
+						<Button Content="&#x25b6;" Width="20" Margin="6,0,0,0" Click="PlayFailureClicked" ToolTip="{Binding ToolTip, ElementName=soundOnFailure}"/>
+					</StackPanel>
 				</CheckBox>
 				<CheckBox x:Name="playSoundOnReconnect" Grid.Row="4" Grid.Column="2">
-					<Button x:Name="soundOnReconnect" Content="..." Width="20" Click="SoundOnReconnectClicked"/>
+					<StackPanel Orientation="Horizontal">
+						<Button x:Name="soundOnReconnect" Content="..." Width="20" Click="SelectReconnectClicked"/>
+						<Button Content="&#x25b6;" Width="20" Margin="6,0,0,0" Click="PlayReconnectClicked" ToolTip="{Binding ToolTip, ElementName=soundOnReconnect}"/>
+					</StackPanel>
 				</CheckBox>
 			</Grid>
 		</GroupBox>

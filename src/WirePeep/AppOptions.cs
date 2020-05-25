@@ -29,7 +29,7 @@ namespace WirePeep
 			}
 
 			// Interesting info about %SystemRoot% vs %WinDir%: https://superuser.com/a/638335/430448
-			const string DefaultFailureSound = @"%SystemRoot%\Media\Windows Critical Stop.wav";
+			const string DefaultFailureSound = @"%SystemRoot%\Media\Windows Notify System Generic.wav";
 			const string DefaultReconnectSound = @"%SystemRoot%\Media\Windows Background.wav";
 			this.FailureOptions = new AlertOptions(true, DefaultFailureSound, settingsNode?.GetSubNode(nameof(this.FailureOptions), false));
 			this.ReconnectOptions = new AlertOptions(false, DefaultReconnectSound, settingsNode?.GetSubNode(nameof(this.ReconnectOptions), false));

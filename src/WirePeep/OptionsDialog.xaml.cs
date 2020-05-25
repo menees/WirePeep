@@ -22,6 +22,12 @@ namespace WirePeep
 {
 	public partial class OptionsDialog : ExtendedDialog
 	{
+		#region Private Data Members
+
+		private MediaPlayer mediaPlayer;
+
+		#endregion
+
 		#region Constructors
 
 		public OptionsDialog()
@@ -87,6 +93,7 @@ namespace WirePeep
 				options.LogFolder = this.LogFolder;
 			}
 
+			this.mediaPlayer?.Stop();
 			return result;
 		}
 
@@ -96,7 +103,6 @@ namespace WirePeep
 
 		private void SelectSoundFile(string title, FrameworkElement element)
 		{
-			// TODO: Handle nulls here. [Bill, 5/25/2020]
 			OpenFileDialog dialog = new OpenFileDialog
 			{
 				Filter = "Sound files (*.mp3;*.wav)|*.mp3;*.wav|All files (*.*)|*.*",
@@ -110,6 +116,11 @@ namespace WirePeep
 				string systemRoot = Environment.GetEnvironmentVariable("SystemRoot");
 				element.ToolTip = TextUtility.Replace(dialog.FileName, systemRoot, "%SystemRoot%", StringComparison.OrdinalIgnoreCase);
 			}
+		}
+
+		private void PlaySoundFile(FrameworkElement element)
+		{
+			AlertOptions.PlaySoundFile(element.ToolTip?.ToString(), ref this.mediaPlayer);
 		}
 
 		#endregion
@@ -145,14 +156,24 @@ namespace WirePeep
 			}
 		}
 
-		private void SoundOnFailureClicked(object sender, RoutedEventArgs e)
+		private void SelectFailureClicked(object sender, RoutedEventArgs e)
 		{
 			this.SelectSoundFile("Select Failure Sound", this.soundOnFailure);
 		}
 
-		private void SoundOnReconnectClicked(object sender, RoutedEventArgs e)
+		private void SelectReconnectClicked(object sender, RoutedEventArgs e)
 		{
 			this.SelectSoundFile("Select Reconnect Sound", this.soundOnReconnect);
+		}
+
+		private void PlayFailureClicked(object sender, RoutedEventArgs e)
+		{
+			this.PlaySoundFile(this.soundOnFailure);
+		}
+
+		private void PlayReconnectClicked(object sender, RoutedEventArgs e)
+		{
+			this.PlaySoundFile(this.soundOnReconnect);
 		}
 
 		#endregion

@@ -18,6 +18,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Shell;
 using Menees;
 using Menees.Windows.Presentation;
 using Microsoft.Win32;
@@ -611,11 +612,16 @@ namespace WirePeep
 			}
 		}
 
-		#endregion
-
 		private void ExtendedWindowActivated(object sender, EventArgs e)
 		{
-			// TODO: Clear taskbar color. [Bill, 5/25/2020]
+			TaskbarItemInfo taskbarItem = this.TaskbarItemInfo;
+			if (taskbarItem != null)
+			{
+				taskbarItem.ProgressState = TaskbarItemProgressState.None;
+				taskbarItem.ProgressValue = 0;
+			}
 		}
+
+		#endregion
 	}
 }

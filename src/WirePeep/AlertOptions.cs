@@ -61,6 +61,26 @@ namespace WirePeep
 
 		#region Public Methods
 
+		public static void PlaySoundFile(string soundFileName, ref MediaPlayer mediaPlayer)
+		{
+			if (!string.IsNullOrEmpty(soundFileName))
+			{
+				string filePath = Environment.ExpandEnvironmentVariables(soundFileName);
+				if (File.Exists(filePath))
+				{
+					if (mediaPlayer == null)
+					{
+						mediaPlayer = new MediaPlayer();
+					}
+
+					// https://www.wpf-tutorial.com/audio-video/playing-audio/
+					mediaPlayer.Open(new Uri(filePath));
+					mediaPlayer.Volume = 1;
+					mediaPlayer.Play();
+				}
+			}
+		}
+
 		public void Save(ISettingsNode settingsNode)
 		{
 			settingsNode.SetValue(nameof(this.ShowWindow), this.ShowWindow);
@@ -76,9 +96,24 @@ namespace WirePeep
 			NotifyIcon notifyIcon,
 			ref MediaPlayer mediaPlayer)
 		{
-			if (window != null && this.ShowWindow)
+			if (window != null)
 			{
-				WindowsUtility.BringToFront(window);
+				if (this.ShowWindow)
+				{
+					WindowsUtility.BringToFront(window);
+				}
+				else if (this.ColorInactiveTaskbarItem && !ApplicationInfo.IsActivated)
+				{
+					TaskbarItemInfo taskbarItem = window.TaskbarItemInfo;
+					if (taskbarItem == null)
+					{
+						taskbarItem = new TaskbarItemInfo();
+						window.TaskbarItemInfo = taskbarItem;
+					}
+
+					taskbarItem.ProgressState = this.IsFailure ? TaskbarItemProgressState.Error : TaskbarItemProgressState.Normal;
+					taskbarItem.ProgressValue = 1;
+				}
 			}
 
 			if (notifyIcon != null && this.ShowNotification)
@@ -87,31 +122,9 @@ namespace WirePeep
 				notifyIcon.ShowBalloonTip(IgnoredTimeout, nameof(WirePeep), notificationMessage, this.IsFailure ? ToolTipIcon.Error : ToolTipIcon.Info);
 			}
 
-			// TODO: BringToFront is activating the app before this. [Bill, 5/25/2020]
-			if (window != null && this.ColorInactiveTaskbarItem && !ApplicationInfo.IsActivated)
+			if (this.PlaySound)
 			{
-				TaskbarItemInfo taskbarItem = window.TaskbarItemInfo;
-				if (taskbarItem != null)
-				{
-					taskbarItem.ProgressState = this.IsFailure ? TaskbarItemProgressState.Error : TaskbarItemProgressState.Normal;
-					taskbarItem.ProgressValue = 1;
-				}
-			}
-
-			if (this.PlaySound && !string.IsNullOrEmpty(this.SoundFileName))
-			{
-				string filePath = Environment.ExpandEnvironmentVariables(this.SoundFileName);
-				if (File.Exists(filePath))
-				{
-					if (mediaPlayer == null)
-					{
-						mediaPlayer = new MediaPlayer();
-					}
-
-					// https://www.wpf-tutorial.com/audio-video/playing-audio/
-					mediaPlayer.Open(new Uri(filePath));
-					mediaPlayer.Play();
-				}
+				PlaySoundFile(this.SoundFileName, ref mediaPlayer);
 			}
 		}
 
