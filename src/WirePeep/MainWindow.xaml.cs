@@ -22,13 +22,15 @@ using System.Windows.Shell;
 using Menees;
 using Menees.Windows.Presentation;
 using Microsoft.Win32;
+using W = System.Windows.Forms;
 
 #endregion
 
 namespace WirePeep
 {
-	// TODO: Apply StartMinimized. [Bill, 5/25/2020]
-	// TODO: Apply MinimizeToTray. [Bill, 5/25/2020]
+	// TODO: Add FormSaver.Load(bool windowSettings, bool nonWindowSettings) method. Or properties for each that Load/Save check. [Bill, 5/25/2020]
+	// TODO: StartMinimized shows black window briefly. [Bill, 5/25/2020]
+	// TODO: MinimizeToTray keeps showing black window. [Bill, 5/25/2020]
 	public sealed partial class MainWindow : ExtendedWindow, IDisposable
 	{
 		#region Private Data Members
@@ -38,9 +40,9 @@ namespace WirePeep
 		private readonly Dictionary<Guid, StatusRow> statusRowMap;
 		private readonly LogRowCollection logRows;
 		private readonly Dictionary<Guid, LogRow> failedPeerGroupToLogRowMap;
+		private readonly W.NotifyIcon notifyIcon;
 
 		private AppOptions appOptions;
-		private CommonOptions commonOptions;
 		private Profile profile;
 		private StateManager stateManager;
 		private Timer backgroundTimer;
@@ -66,9 +68,19 @@ namespace WirePeep
 			this.logRows = (LogRowCollection)this.Resources["LogRows"];
 			this.failedPeerGroupToLogRowMap = new Dictionary<Guid, LogRow>(this.statusRowMap.Comparer);
 
-			this.saver = new WindowSaver(this);
+			this.saver = new WindowSaver(this) { AutoLoad = false };
 			this.saver.LoadSettings += this.SaverLoadSettings;
 			this.saver.SaveSettings += this.SaverSaveSettings;
+
+			// TODO: Load Icon from resource or convert from this.Icon's ImageSource. [Bill, 5/25/2020]
+			// https://stackoverflow.com/questions/1201518/convert-system-windows-media-imagesource-to-system-drawing-bitmap
+			this.notifyIcon = new W.NotifyIcon();
+			this.notifyIcon.Icon = new System.Drawing.Icon(@"C:\Projects\Repos\RpnCalc\src\RpnCalc\Images\Icons\Logo.ico");
+			this.notifyIcon.Text = ApplicationInfo.ApplicationName;
+			this.notifyIcon.Click += this.NotifyIconClick;
+
+			// The notify icon has to be visible for us to send tooltip notification messages through it.
+			this.notifyIcon.Visible = true;
 		}
 
 		#endregion
@@ -96,6 +108,8 @@ namespace WirePeep
 
 		private StatusRow SelectedStatusRow => (StatusRow)this.statusGrid.SelectedItem;
 
+		private CommonOptions CommonOptions => this.appOptions?.CommonOptions;
+
 		#endregion
 
 		#region Public Methods
@@ -103,6 +117,24 @@ namespace WirePeep
 		public void Dispose()
 		{
 			this.backgroundTimer.Dispose();
+			this.notifyIcon.Dispose();
+		}
+
+		#endregion
+
+		#region Internal Methods
+
+		internal AppOptions LoadSettings()
+		{
+			this.saver.Load();
+			return this.appOptions;
+		}
+
+		internal void MinimizeToTray()
+		{
+			this.ShowInTaskbar = false;
+
+			// TODO: Is this needed: this.Visibility = Visibility.Hidden; [Bill, 5/25/2020]
 		}
 
 		#endregion
@@ -143,7 +175,7 @@ namespace WirePeep
 			this.monitoredTime.Text = monitored.ToString();
 
 			// Optionally, simulate a failure when ScrollLock is toggled on.
-			this.simulateFailure = this.commonOptions.ScrollLockSimulatesFailure && Keyboard.IsKeyToggled(Key.Scroll);
+			this.simulateFailure = this.CommonOptions.ScrollLockSimulatesFailure && Keyboard.IsKeyToggled(Key.Scroll);
 		}
 
 		private void UpdateStatusRows(StateSnapshot states)
@@ -227,11 +259,10 @@ namespace WirePeep
 				sb.AppendLine();
 				foreach (PeerGroupState peerGroupState in group)
 				{
-					sb.Append(peerGroupState.PeerGroup.Name);
+					sb.AppendLine(peerGroupState.PeerGroup.Name);
 				}
 
-				// TODO: Pass in a NotifyIcon [Bill, 5/25/2020]
-				alertOptions.Alert(this, sb.ToString(), null, ref this.mediaPlayer);
+				alertOptions.Alert(this, sb.ToString(), this.notifyIcon, ref this.mediaPlayer);
 			}
 		}
 
@@ -293,7 +324,7 @@ namespace WirePeep
 		private string GenerateLogFileName()
 		{
 			DateTime started = this.stateManager.Started;
-			string result = this.commonOptions.GetFullLogFileName(started);
+			string result = this.CommonOptions.GetFullLogFileName(started);
 			return result;
 		}
 
@@ -353,7 +384,6 @@ namespace WirePeep
 		{
 			var settings = e.SettingsNode;
 			this.appOptions = new AppOptions(settings.GetSubNode(nameof(AppOptions), false));
-			this.commonOptions = new CommonOptions(settings.GetSubNode(nameof(CommonOptions), false));
 			this.profile = new Profile(settings.GetSubNode(nameof(Profile), false));
 
 			ISettingsNode splitterNode = settings.GetSubNode(nameof(GridSplitter), false);
@@ -386,7 +416,6 @@ namespace WirePeep
 			var settings = e.SettingsNode;
 			this.profile?.Save(settings.GetSubNode(nameof(Profile), true));
 			this.appOptions?.Save(settings.GetSubNode(nameof(AppOptions), true));
-			this.commonOptions?.Save(settings.GetSubNode(nameof(CommonOptions), true));
 
 			settings.DeleteSubNode(nameof(GridSplitter));
 			ISettingsNode splitterNode = settings.GetSubNode(nameof(GridSplitter), true);
@@ -401,7 +430,7 @@ namespace WirePeep
 			}
 		}
 
-		private void ExtendedWindowClosing(object sender, CancelEventArgs e)
+		private void WindowClosing(object sender, CancelEventArgs e)
 		{
 			this.closing = true;
 			this.backgroundTimer.Dispose();
@@ -416,7 +445,7 @@ namespace WirePeep
 		private void ViewOptionsExecuted(object sender, ExecutedRoutedEventArgs e)
 		{
 			OptionsDialog dialog = new OptionsDialog();
-			if (dialog.Execute(this, this.appOptions, this.commonOptions))
+			if (dialog.Execute(this, this.appOptions))
 			{
 				this.saver.Save();
 				this.UpdateLogger();
@@ -612,7 +641,7 @@ namespace WirePeep
 			}
 		}
 
-		private void ExtendedWindowActivated(object sender, EventArgs e)
+		private void WindowActivated(object sender, EventArgs e)
 		{
 			TaskbarItemInfo taskbarItem = this.TaskbarItemInfo;
 			if (taskbarItem != null)
@@ -620,6 +649,37 @@ namespace WirePeep
 				taskbarItem.ProgressState = TaskbarItemProgressState.None;
 				taskbarItem.ProgressValue = 0;
 			}
+		}
+
+		private void NotifyIconClick(object sender, EventArgs e)
+		{
+			if (!this.ShowInTaskbar)
+			{
+				this.Show();
+			}
+
+			// TODO: Is this needed: this.Visibility = Visibility.Visible; [Bill, 5/25/2020]
+			this.WindowState = WindowState.Normal;
+		}
+
+		private void WindowStateChanged(object sender, EventArgs e)
+		{
+			if (this.WindowState == WindowState.Minimized)
+			{
+				if (this.appOptions?.MinimizeToTray ?? false)
+				{
+					this.MinimizeToTray();
+				}
+			}
+			else
+			{
+				this.ShowInTaskbar = true;
+			}
+		}
+
+		private void WindowClosed(object sender, EventArgs e)
+		{
+			this.Dispose();
 		}
 
 		#endregion

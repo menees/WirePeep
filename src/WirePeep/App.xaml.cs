@@ -23,5 +23,33 @@ namespace WirePeep
 		}
 
 		#endregion
+
+		#region Protected Methods
+
+		protected override void OnStartup(StartupEventArgs e)
+		{
+			base.OnStartup(e);
+
+			MainWindow mainWindow = new MainWindow();
+			this.MainWindow = mainWindow;
+
+			AppOptions appOptions = mainWindow.LoadSettings();
+			if (appOptions.StartMinimized)
+			{
+				mainWindow.WindowState = WindowState.Minimized;
+
+				if (appOptions.MinimizeToTray)
+				{
+					mainWindow.MinimizeToTray();
+				}
+			}
+
+			if (mainWindow.ShowInTaskbar)
+			{
+				mainWindow.Show();
+			}
+		}
+
+		#endregion
 	}
 }

@@ -45,7 +45,7 @@ namespace WirePeep
 
 		#region Internal Methods
 
-		internal bool Execute(Window owner, AppOptions appOptions, CommonOptions options)
+		internal bool Execute(Window owner, AppOptions appOptions)
 		{
 			this.Owner = owner;
 
@@ -66,8 +66,8 @@ namespace WirePeep
 			this.playSoundOnReconnect.IsChecked = appOptions.ReconnectOptions.PlaySound;
 			this.soundOnReconnect.ToolTip = appOptions.ReconnectOptions.SoundFileName;
 
-			this.logFileNameFormat.SelectedIndex = (int)options.LogFileNameFormat;
-			this.logFolder.Text = options.LogFolder;
+			this.logFileNameFormat.SelectedIndex = (int)appOptions.CommonOptions.LogFileNameFormat;
+			this.logFolder.Text = appOptions.CommonOptions.LogFolder;
 
 			bool result = this.ShowDialog() ?? false;
 			if (result)
@@ -89,8 +89,8 @@ namespace WirePeep
 				appOptions.ReconnectOptions.PlaySound = this.playSoundOnReconnect.IsChecked ?? false;
 				appOptions.ReconnectOptions.SoundFileName = this.soundOnReconnect.ToolTip?.ToString();
 
-				options.LogFileNameFormat = (LogFileNameFormat)this.logFileNameFormat.SelectedIndex;
-				options.LogFolder = this.LogFolder;
+				appOptions.CommonOptions.LogFileNameFormat = (LogFileNameFormat)this.logFileNameFormat.SelectedIndex;
+				appOptions.CommonOptions.LogFolder = this.LogFolder;
 			}
 
 			this.mediaPlayer?.Stop();

@@ -33,6 +33,7 @@ namespace WirePeep
 			const string DefaultReconnectSound = @"%SystemRoot%\Media\Windows Background.wav";
 			this.FailureOptions = new AlertOptions(true, DefaultFailureSound, settingsNode?.GetSubNode(nameof(this.FailureOptions), false));
 			this.ReconnectOptions = new AlertOptions(false, DefaultReconnectSound, settingsNode?.GetSubNode(nameof(this.ReconnectOptions), false));
+			this.CommonOptions = new CommonOptions(settingsNode.GetSubNode(nameof(this.CommonOptions), false));
 		}
 
 		#endregion
@@ -51,6 +52,8 @@ namespace WirePeep
 
 		public AlertOptions ReconnectOptions { get; }
 
+		public CommonOptions CommonOptions { get; }
+
 		#endregion
 
 		#region Public Methods
@@ -64,6 +67,7 @@ namespace WirePeep
 
 			this.FailureOptions.Save(settingsNode.GetSubNode(nameof(this.FailureOptions), true));
 			this.ReconnectOptions.Save(settingsNode.GetSubNode(nameof(this.ReconnectOptions), true));
+			this.CommonOptions.Save(settingsNode.GetSubNode(nameof(this.CommonOptions), true));
 		}
 
 		public void Apply(Window window)
