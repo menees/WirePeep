@@ -339,3 +339,6 @@ ASALocalRun/
 
 # BeatPulse healthcheck temp database
 healthchecksdb
+
+# Ignore large whiteboard images
+/src/WirePeep/Images/Whiteboard*.png
