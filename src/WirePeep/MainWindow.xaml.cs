@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Data;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -69,15 +70,7 @@ namespace WirePeep
 			this.windowSaver.LoadSettings += this.WindowSaverLoadSettings;
 			this.windowSaver.SaveSettings += this.WindowSaverSaveSettings;
 
-			// TODO: Load Icon from resource or convert from this.Icon's ImageSource. [Bill, 5/25/2020]
-			// https://stackoverflow.com/questions/1201518/convert-system-windows-media-imagesource-to-system-drawing-bitmap
-			this.notifyIcon = new W.NotifyIcon();
-			this.notifyIcon.Icon = new System.Drawing.Icon(@"C:\Projects\Repos\RpnCalc\src\RpnCalc\Images\Icons\Logo.ico");
-			this.notifyIcon.Text = ApplicationInfo.ApplicationName;
-			this.notifyIcon.Click += this.NotifyIconClick;
-
-			// The notify icon has to be visible for us to send tooltip notification messages through it.
-			this.notifyIcon.Visible = true;
+			this.notifyIcon = this.CreateNotifyIcon();
 		}
 
 		#endregion
@@ -113,8 +106,9 @@ namespace WirePeep
 
 		public void Dispose()
 		{
-			this.backgroundTimer.Dispose();
-			this.notifyIcon.Dispose();
+			this.backgroundTimer?.Dispose();
+			this.notifyIcon?.Dispose();
+			this.notifyIcon.ContextMenuStrip?.Dispose();
 		}
 
 		#endregion
@@ -389,6 +383,46 @@ namespace WirePeep
 			}
 		}
 
+		private W.NotifyIcon CreateNotifyIcon()
+		{
+			W.NotifyIcon notifyIcon = new W.NotifyIcon();
+
+			W.ContextMenuStrip notifyIconMenu = new W.ContextMenuStrip();
+#pragma warning disable CC0022 // Should dispose object. The menu items are disposed by the ContextMenuStrip.
+			W.ToolStripMenuItem notifyIconViewMenu = new W.ToolStripMenuItem();
+			W.ToolStripSeparator notifyIconSeparator = new W.ToolStripSeparator();
+			W.ToolStripMenuItem notifyIconExitMenu = new W.ToolStripMenuItem();
+#pragma warning restore CC0022 // Should dispose object
+			notifyIcon.ContextMenuStrip = notifyIconMenu;
+
+			// TODO: Load Icon from resource or convert from this.Icon's ImageSource. [Bill, 5/25/2020]
+			// https://stackoverflow.com/questions/1201518/convert-system-windows-media-imagesource-to-system-drawing-bitmap
+			notifyIcon.Icon = new System.Drawing.Icon(@"C:\Projects\Repos\RpnCalc\src\RpnCalc\Images\Icons\Logo.ico");
+			notifyIcon.Text = ApplicationInfo.ApplicationName;
+			notifyIcon.Visible = true;
+			notifyIcon.MouseDoubleClick += this.NotifyIconMouseDoubleClick;
+
+			notifyIconMenu.Items.AddRange(new W.ToolStripItem[]
+			{
+				notifyIconViewMenu,
+				notifyIconSeparator,
+				notifyIconExitMenu,
+			});
+
+			// notifyIconMenu.ShowImageMargin = false;
+			notifyIconViewMenu.Font = new Font(notifyIconMenu.Font, System.Drawing.FontStyle.Bold);
+			notifyIconViewMenu.Text = "&View";
+			notifyIconViewMenu.Click += this.NotifyIconViewMenuClick;
+
+			notifyIconExitMenu.Text = "&Exit";
+			notifyIconExitMenu.Click += this.NotifyIconExitMenuClick;
+
+			// The notify icon has to be visible for us to send tooltip notification messages through it.
+			notifyIcon.Visible = true;
+
+			return notifyIcon;
+		}
+
 		#endregion
 
 		#region Private Event Handlers
@@ -653,16 +687,6 @@ namespace WirePeep
 			}
 		}
 
-		private void NotifyIconClick(object sender, EventArgs e)
-		{
-			if (!this.ShowInTaskbar)
-			{
-				this.Show();
-			}
-
-			WindowsUtility.BringToFront(this);
-		}
-
 		private void WindowStateChanged(object sender, EventArgs e)
 		{
 			if (this.WindowState == WindowState.Minimized)
@@ -697,6 +721,29 @@ namespace WirePeep
 			if (this.appOptions.StartMinimized && !this.appOptions.MinimizeToTray)
 			{
 				this.WindowState = WindowState.Minimized;
+			}
+		}
+
+		private void NotifyIconViewMenuClick(object sender, EventArgs e)
+		{
+			if (!this.ShowInTaskbar)
+			{
+				this.Show();
+			}
+
+			WindowsUtility.BringToFront(this);
+		}
+
+		private void NotifyIconExitMenuClick(object sender, EventArgs e)
+		{
+			Commands.Exit.Execute(null, this);
+		}
+
+		private void NotifyIconMouseDoubleClick(object sender, W.MouseEventArgs e)
+		{
+			if (e.Button == W.MouseButtons.Left)
+			{
+				this.NotifyIconViewMenuClick(sender, e);
 			}
 		}
 
