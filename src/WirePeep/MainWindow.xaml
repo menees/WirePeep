@@ -72,7 +72,9 @@
             M20 6.91L17.09 4L12 9.09L6.91 4L4 6.91L9.09 12L4 17.09L6.91 20L12 14.91L17.09 20L20 17.09L14.91 12L20 6.91Z
         </Geometry>
 
-        <Style x:Key="StatusGroupHeaderStyle" TargetType="GroupItem">
+		<BooleanToVisibilityConverter x:Key="BoolVisibility" />
+
+		<Style x:Key="StatusGroupHeaderStyle" TargetType="GroupItem">
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="GroupItem">
@@ -119,7 +121,9 @@
                                 <TextBlock Text="ms.  Fail after " Style="{StaticResource VCenterText}"/>
                                 <TextBlock Text="{Binding Items[0].GroupFailSeconds}" Style="{StaticResource VCenterText}"/>
                                 <TextBlock Text="s outage." Style="{StaticResource VCenterText}"/>
-                            </DockPanel>
+								<TextBlock Text="  Since last fail: " Style="{StaticResource VCenterText}" Visibility="{Binding Items[0].HasGroupEverFailed, Converter={StaticResource BoolVisibility}}"/>
+								<TextBlock Text="{Binding Items[0].TimeSinceLastGroupFail}" Style="{StaticResource VCenterText}" Visibility="{Binding Items[0].HasGroupEverFailed, Converter={StaticResource BoolVisibility}}"/>
+							</DockPanel>
                             <ItemsPresenter />
                         </StackPanel>
                     </ControlTemplate>

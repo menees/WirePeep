@@ -23,6 +23,9 @@ namespace WirePeep
 		private int groupPollSeconds;
 		private int groupWaitMilliseconds;
 		private bool isGroupAccessible;
+		private bool hasGroupEverFailed;
+		private TimeSpan timeSinceLastGroupFail;
+
 		private string locationName;
 		private IPAddress locationAddress;
 		private bool? isLocationConnected;
@@ -43,6 +46,10 @@ namespace WirePeep
 		public int GroupWaitMilliseconds { get => this.groupWaitMilliseconds; set => this.Update(ref this.groupWaitMilliseconds, value); }
 
 		public bool IsGroupAccessible { get => this.isGroupAccessible; set => this.Update(ref this.isGroupAccessible, value); }
+
+		public bool HasGroupEverFailed { get => this.hasGroupEverFailed; set => this.Update(ref this.hasGroupEverFailed, value); }
+
+		public TimeSpan TimeSinceLastGroupFail { get => this.timeSinceLastGroupFail; set => this.Update(ref this.timeSinceLastGroupFail, value); }
 
 		#endregion
 
@@ -76,6 +83,10 @@ namespace WirePeep
 			this.GroupPollSeconds = (int)peerGroup.Poll.TotalSeconds;
 			this.GroupWaitMilliseconds = (int)peerGroup.Wait.TotalMilliseconds;
 			this.IsGroupAccessible = !peerGroupState.IsFailed;
+			this.HasGroupEverFailed = peerGroupState.IsFailedChanged != null;
+			this.TimeSinceLastGroupFail = this.HasGroupEverFailed
+				? ConvertUtility.RoundToSeconds(peerGroupState.LastUpdateRequest - peerGroupState.IsFailedChanged.Value)
+				: TimeSpan.Zero;
 
 			Location location = locationState.Location;
 			this.LocationName = location.Name;
