@@ -28,14 +28,11 @@ using W = System.Windows.Forms;
 
 namespace WirePeep
 {
-	// TODO: Add FormSaver.Load(bool windowSettings, bool nonWindowSettings) method. Or properties for each that Load/Save check. [Bill, 5/25/2020]
-	// TODO: StartMinimized shows black window briefly. [Bill, 5/25/2020]
-	// TODO: MinimizeToTray keeps showing black window. [Bill, 5/25/2020]
 	public sealed partial class MainWindow : ExtendedWindow, IDisposable
 	{
 		#region Private Data Members
 
-		private readonly WindowSaver saver;
+		private readonly WindowSaver windowSaver;
 		private readonly StatusRowCollection statusRows;
 		private readonly Dictionary<Guid, StatusRow> statusRowMap;
 		private readonly LogRowCollection logRows;
@@ -68,9 +65,9 @@ namespace WirePeep
 			this.logRows = (LogRowCollection)this.Resources["LogRows"];
 			this.failedPeerGroupToLogRowMap = new Dictionary<Guid, LogRow>(this.statusRowMap.Comparer);
 
-			this.saver = new WindowSaver(this) { AutoLoad = false };
-			this.saver.LoadSettings += this.SaverLoadSettings;
-			this.saver.SaveSettings += this.SaverSaveSettings;
+			this.windowSaver = new WindowSaver(this) { AutoLoad = false };
+			this.windowSaver.LoadSettings += this.WindowSaverLoadSettings;
+			this.windowSaver.SaveSettings += this.WindowSaverSaveSettings;
 
 			// TODO: Load Icon from resource or convert from this.Icon's ImageSource. [Bill, 5/25/2020]
 			// https://stackoverflow.com/questions/1201518/convert-system-windows-media-imagesource-to-system-drawing-bitmap
@@ -124,17 +121,33 @@ namespace WirePeep
 
 		#region Internal Methods
 
-		internal AppOptions LoadSettings()
+		internal AppOptions LoadNonWindowSettings()
 		{
-			this.saver.Load();
-			return this.appOptions;
+			using (ISettingsStore store = ApplicationInfo.CreateUserSettingsStore())
+			{
+				ISettingsNode settings = store.RootNode;
+				this.appOptions = new AppOptions(settings.GetSubNode(nameof(AppOptions), false));
+				this.profile = new Profile(settings.GetSubNode(nameof(Profile), false));
+				this.stateManager = new StateManager(this.profile);
+
+				string logFileName = this.GenerateLogFileName();
+				this.OpenLogger(logFileName);
+				this.appOptions.Apply(this);
+
+				this.backgroundTimer = new Timer(this.BackgroundTimerCallback, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+				return this.appOptions;
+			}
 		}
 
-		internal void MinimizeToTray()
+		internal void SaveNonWindowSettings()
 		{
-			this.ShowInTaskbar = false;
-
-			// TODO: Is this needed: this.Visibility = Visibility.Hidden; [Bill, 5/25/2020]
+			using (ISettingsStore store = ApplicationInfo.CreateUserSettingsStore())
+			{
+				ISettingsNode settings = store.RootNode;
+				this.profile?.Save(settings.GetSubNode(nameof(Profile), true));
+				this.appOptions?.Save(settings.GetSubNode(nameof(AppOptions), true));
+				store.Save();
+			}
 		}
 
 		#endregion
@@ -380,11 +393,9 @@ namespace WirePeep
 
 		#region Private Event Handlers
 
-		private void SaverLoadSettings(object sender, SettingsEventArgs e)
+		private void WindowSaverLoadSettings(object sender, SettingsEventArgs e)
 		{
 			var settings = e.SettingsNode;
-			this.appOptions = new AppOptions(settings.GetSubNode(nameof(AppOptions), false));
-			this.profile = new Profile(settings.GetSubNode(nameof(Profile), false));
 
 			ISettingsNode splitterNode = settings.GetSubNode(nameof(GridSplitter), false);
 			if (splitterNode != null)
@@ -402,20 +413,11 @@ namespace WirePeep
 					}
 				}
 			}
-
-			this.stateManager = new StateManager(this.profile);
-			string logFileName = this.GenerateLogFileName();
-			this.OpenLogger(logFileName);
-			this.backgroundTimer = new Timer(this.BackgroundTimerCallback, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
-
-			this.appOptions.Apply(this);
 		}
 
-		private void SaverSaveSettings(object sender, SettingsEventArgs e)
+		private void WindowSaverSaveSettings(object sender, SettingsEventArgs e)
 		{
 			var settings = e.SettingsNode;
-			this.profile?.Save(settings.GetSubNode(nameof(Profile), true));
-			this.appOptions?.Save(settings.GetSubNode(nameof(AppOptions), true));
 
 			settings.DeleteSubNode(nameof(GridSplitter));
 			ISettingsNode splitterNode = settings.GetSubNode(nameof(GridSplitter), true);
@@ -447,7 +449,7 @@ namespace WirePeep
 			OptionsDialog dialog = new OptionsDialog();
 			if (dialog.Execute(this, this.appOptions))
 			{
-				this.saver.Save();
+				this.windowSaver.Save();
 				this.UpdateLogger();
 				this.appOptions.Apply(this);
 			}
@@ -658,8 +660,7 @@ namespace WirePeep
 				this.Show();
 			}
 
-			// TODO: Is this needed: this.Visibility = Visibility.Visible; [Bill, 5/25/2020]
-			this.WindowState = WindowState.Normal;
+			WindowsUtility.BringToFront(this);
 		}
 
 		private void WindowStateChanged(object sender, EventArgs e)
@@ -668,7 +669,7 @@ namespace WirePeep
 			{
 				if (this.appOptions?.MinimizeToTray ?? false)
 				{
-					this.MinimizeToTray();
+					this.ShowInTaskbar = false;
 				}
 			}
 			else
@@ -680,6 +681,23 @@ namespace WirePeep
 		private void WindowClosed(object sender, EventArgs e)
 		{
 			this.Dispose();
+		}
+
+		private void WindowLoaded(object sender, RoutedEventArgs e)
+		{
+			// This will reload the previous window placement but with a normal or maximized state (never minimized).
+			this.windowSaver.Load();
+
+			// Setting this WindowState after Load will briefly show the window on the screen (due to Load's call to SetWindowPlacement).
+			// However, then it will minimize to the correct monitor's taskbar, and the taskbar's thumbnail will be a correct image.
+			// If we did the following code before calling this.windowSaver.Load() above:
+			//     if (this.appOptions.StartMinimized) this.windowSaver.LoadStateOverride = WindowState.Minimized;
+			// Then we wouldn't see the flicker, but we'd always end up minimized on the primary taskbar and without a thumbnail image.
+			// Accepting the brief flicker seems like the best alternative.
+			if (this.appOptions.StartMinimized && !this.appOptions.MinimizeToTray)
+			{
+				this.WindowState = WindowState.Minimized;
+			}
 		}
 
 		#endregion

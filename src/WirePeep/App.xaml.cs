@@ -13,8 +13,16 @@ using Menees.Windows.Presentation;
 
 namespace WirePeep
 {
+#pragma warning disable CA1001 // Types that own disposable fields should be disposable. WPF Applications can't be disposable. OnExit does the clean-up.
 	public partial class App : Application
+#pragma warning restore CA1001 // Types that own disposable fields should be disposable
 	{
+		#region Private Data Members
+
+		private MainWindow mainWindow;
+
+		#endregion
+
 		#region Constructors
 
 		public App()
@@ -30,24 +38,32 @@ namespace WirePeep
 		{
 			base.OnStartup(e);
 
-			MainWindow mainWindow = new MainWindow();
-			this.MainWindow = mainWindow;
+			this.mainWindow = new MainWindow();
 
-			AppOptions appOptions = mainWindow.LoadSettings();
+			AppOptions appOptions = this.mainWindow.LoadNonWindowSettings();
 			if (appOptions.StartMinimized)
 			{
-				mainWindow.WindowState = WindowState.Minimized;
+				this.mainWindow.WindowState = WindowState.Minimized;
 
 				if (appOptions.MinimizeToTray)
 				{
-					mainWindow.MinimizeToTray();
+					this.mainWindow.ShowInTaskbar = false;
 				}
 			}
 
-			if (mainWindow.ShowInTaskbar)
+			if (this.mainWindow.ShowInTaskbar)
 			{
-				mainWindow.Show();
+				this.mainWindow.Show();
 			}
+		}
+
+		protected override void OnExit(ExitEventArgs e)
+		{
+			base.OnExit(e);
+
+			// We have to use our member variable here because the Application.MainWindow property is null by this point.
+			this.mainWindow?.SaveNonWindowSettings();
+			this.mainWindow?.Dispose();
 		}
 
 		#endregion

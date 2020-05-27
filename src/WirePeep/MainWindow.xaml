@@ -8,8 +8,8 @@
 		xmlns:comp="clr-namespace:System.ComponentModel;assembly=WindowsBase"
 		mc:Ignorable="d"
 		Title="WirePeep - Network Downtime Monitor" Height="450" Width="800"
-		FocusManager.FocusedElement="{Binding ElementName=statusGrid}" Closing="WindowClosing"
-				  Activated="WindowActivated" StateChanged="WindowStateChanged" Closed="WindowClosed">
+		FocusManager.FocusedElement="{Binding ElementName=statusGrid}"
+				  Loaded="WindowLoaded" Activated="WindowActivated" StateChanged="WindowStateChanged" Closing="WindowClosing" Closed="WindowClosed" >
 
     <Window.CommandBindings>
         <CommandBinding Command="local:Commands.AddLocation" Executed="AddLocationExecuted" />
