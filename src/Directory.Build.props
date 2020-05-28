@@ -16,7 +16,7 @@
 		<AssemblyOriginatorKeyFile>../WirePeep.snk</AssemblyOriginatorKeyFile>
 
 		<!-- Make the assembly, file, and NuGet package versions the same. -->
-		<Version>0.1.0</Version>
+		<Version>0.9.0</Version>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)'=='Debug'">

@@ -395,9 +395,7 @@ namespace WirePeep
 #pragma warning restore CC0022 // Should dispose object
 			notifyIcon.ContextMenuStrip = notifyIconMenu;
 
-			// TODO: Load Icon from resource or convert from this.Icon's ImageSource. [Bill, 5/25/2020]
-			// https://stackoverflow.com/questions/1201518/convert-system-windows-media-imagesource-to-system-drawing-bitmap
-			notifyIcon.Icon = new System.Drawing.Icon(@"C:\Projects\Repos\RpnCalc\src\RpnCalc\Images\Icons\Logo.ico");
+			notifyIcon.Icon = Properties.Resources.WirePeep;
 			notifyIcon.Text = ApplicationInfo.ApplicationName;
 			notifyIcon.Visible = true;
 			notifyIcon.MouseDoubleClick += this.NotifyIconMouseDoubleClick;
