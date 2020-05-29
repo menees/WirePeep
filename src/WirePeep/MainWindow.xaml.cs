@@ -481,7 +481,7 @@ namespace WirePeep
 			OptionsDialog dialog = new OptionsDialog();
 			if (dialog.Execute(this, this.appOptions))
 			{
-				this.windowSaver.Save();
+				this.SaveNonWindowSettings();
 				this.UpdateLogger();
 				this.appOptions.Apply(this);
 			}
