@@ -14,10 +14,11 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F0984862-FEDB-4A25-BC78-823B127D5490}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		.gitignore = .gitignore
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WirePeep.Common", "src\WirePeep.Common\WirePeep.Common.csproj", "{C77E628E-5F9C-4175-B7A1-6DCADB649F24}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WirePeep.Common", "src\WirePeep.Common\WirePeep.Common.csproj", "{C77E628E-5F9C-4175-B7A1-6DCADB649F24}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
