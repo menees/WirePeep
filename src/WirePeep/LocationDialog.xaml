@@ -15,9 +15,15 @@
 		</Grid.RowDefinitions>
 		<StackPanel Margin="12,0,12,12">
 			<Label Content="_Name:" Target="{Binding ElementName=name}"/>
-			<TextBox x:Name="name" TabIndex="0"/>
+			<DockPanel KeyboardNavigation.TabNavigation="Local">
+				<Button x:Name="lookupAddress" Content="🔍 A_ddress" DockPanel.Dock="Right" Margin="12,0,0,0" Width="75" TabIndex="1" Click="LookupAddressClicked"/>
+				<TextBox x:Name="name" TabIndex="0"/>
+			</DockPanel>
 			<Label Content="IP _Address:" Target="{Binding ElementName=address}"/>
-			<TextBox x:Name="address" TabIndex="0"/>
+			<DockPanel KeyboardNavigation.TabNavigation="Local">
+				<Button Content="🔍 Na_me" DockPanel.Dock="Right" Margin="12,0,0,0" Width="{Binding Path=Width, ElementName=lookupAddress}" TabIndex="1" Click="LookupNameClicked"/>
+				<TextBox x:Name="address" TabIndex="0"/>
+			</DockPanel>
 			<Label Content="_Peer Group:" Target="{Binding ElementName=peerGroups}"/>
 			<ComboBox x:Name="peerGroups"/>
 		</StackPanel>

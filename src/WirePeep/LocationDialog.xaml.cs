@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Sockets;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -75,16 +76,9 @@ namespace WirePeep
 
 		private Location TryGetLocation(IList<string> errors, Guid? id = null)
 		{
-			string name = this.name.Text.Trim();
-			if (string.IsNullOrEmpty(name))
-			{
-				errors.Add("The name must be non-empty and non-whitespace.");
-			}
+			string name = this.GetName(errors);
 
-			if (!IPAddress.TryParse(this.address.Text.Trim(), out IPAddress address))
-			{
-				errors.Add("The address must be a valid IPv4 or IPv6 address.");
-			}
+			IPAddress address = this.GetAddress(errors);
 
 			PeerGroup peerGroup = this.peerGroups.SelectedItem as PeerGroup;
 			if (peerGroup == null)
@@ -93,6 +87,40 @@ namespace WirePeep
 			}
 
 			Location result = errors.Count == 0 ? new Location(peerGroup, name, address, id) : null;
+			return result;
+		}
+
+		private string GetName(IList<string> errors)
+		{
+			string name = this.name.Text.Trim();
+			if (string.IsNullOrEmpty(name))
+			{
+				errors.Add("The name must be non-empty and non-whitespace.");
+			}
+
+			return name;
+		}
+
+		private IPAddress GetAddress(IList<string> errors)
+		{
+			if (!IPAddress.TryParse(this.address.Text.Trim(), out IPAddress address))
+			{
+				errors.Add("The address must be a valid IPv4 or IPv6 address.");
+			}
+
+			return address;
+		}
+
+		private bool IsValid(IReadOnlyList<string> errors)
+		{
+			bool result = true;
+
+			if (errors.Count > 0)
+			{
+				WindowsUtility.ShowError(this, string.Join(Environment.NewLine, errors));
+				result = false;
+			}
+
 			return result;
 		}
 
@@ -114,11 +142,7 @@ namespace WirePeep
 				}
 			}
 
-			if (errors.Count > 0)
-			{
-				WindowsUtility.ShowError(this, string.Join(Environment.NewLine, errors));
-			}
-			else
+			if (this.IsValid(errors))
 			{
 				bool pingOk = true;
 				const int WaitMilliseconds = 200;
@@ -135,6 +159,62 @@ namespace WirePeep
 				if (pingOk)
 				{
 					this.DialogResult = true;
+				}
+			}
+		}
+
+		private void LookupAddressClicked(object sender, RoutedEventArgs e)
+		{
+			List<string> errors = new List<string>();
+			string name = this.GetName(errors);
+
+			if (this.IsValid(errors))
+			{
+				IPAddress[] addresses = null;
+				try
+				{
+					using (new WaitCursor())
+					{
+						addresses = Dns.GetHostAddresses(name);
+					}
+				}
+				catch (SocketException ex)
+				{
+					errors.Add(ex.Message);
+				}
+
+				if (this.IsValid(errors))
+				{
+					// Prefer IPv4 addresses over IPv6.
+					IPAddress preferred = addresses.OrderBy(address => address.AddressFamily).First();
+					this.address.Text = preferred.ToString();
+				}
+			}
+		}
+
+		private void LookupNameClicked(object sender, RoutedEventArgs e)
+		{
+			List<string> errors = new List<string>();
+			IPAddress address = this.GetAddress(errors);
+
+			if (this.IsValid(errors))
+			{
+				IPHostEntry entry = null;
+				try
+				{
+					using (new WaitCursor())
+					{
+						entry = Dns.GetHostEntry(address);
+					}
+				}
+				catch (SocketException ex)
+				{
+					errors.Add(ex.Message);
+				}
+
+				if (this.IsValid(errors))
+				{
+					this.name.Text = entry.HostName;
 				}
 			}
 		}
