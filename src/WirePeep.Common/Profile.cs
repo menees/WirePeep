@@ -113,7 +113,7 @@ namespace WirePeep
 			void AddLocation(Location location)
 			{
 				// Don't add a duplicate address (e.g., both router and modem if they're the same).
-				if (!this.Locations.Any(l => l.Address == location.Address))
+				if (!this.Locations.Any(l => l.Address.Equals(location.Address)))
 				{
 					if (!this.PeerGroups.Contains(location.PeerGroup))
 					{
