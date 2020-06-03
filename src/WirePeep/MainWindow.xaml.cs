@@ -75,6 +75,14 @@ namespace WirePeep
 
 		#endregion
 
+		#region Internal Properties
+
+		internal bool StartMinimized { get; set; }
+
+		internal bool IsSessionEnding { get; set; }
+
+		#endregion
+
 		#region Private Properties
 
 		private RowDefinition[] SplitterTargetRows
@@ -290,6 +298,8 @@ namespace WirePeep
 					this.logger?.AddFailureComment(logRow.PeerGroupName, this.stateManager.LastUpdated, logRow.FailureId, comment);
 				}
 			}
+
+			this.TryFocus(this.logGrid);
 		}
 
 		private void EditLocation(StatusRow statusRow)
@@ -318,6 +328,8 @@ namespace WirePeep
 						}
 					}
 				}
+
+				this.TryFocus(this.statusGrid);
 			}
 		}
 
@@ -421,6 +433,11 @@ namespace WirePeep
 			return notifyIcon;
 		}
 
+		private void TryFocus(Control control)
+		{
+			this.Dispatcher.Invoke(() => { control.Focus(); });
+		}
+
 		#endregion
 
 		#region Private Event Handlers
@@ -466,9 +483,17 @@ namespace WirePeep
 
 		private void WindowClosing(object sender, CancelEventArgs e)
 		{
-			this.closing = true;
-			this.backgroundTimer.Dispose();
-			this.CloseLogger();
+			if (!this.IsSessionEnding && (this.appOptions?.ConfirmClose ?? false) && !e.Cancel)
+			{
+				e.Cancel = !WindowsUtility.ShowQuestion(this, "Are you sure you want to exit?");
+			}
+
+			if (!e.Cancel)
+			{
+				this.closing = true;
+				this.backgroundTimer.Dispose();
+				this.CloseLogger();
+			}
 		}
 
 		private void ExitExecuted(object sender, ExecutedRoutedEventArgs e)
@@ -500,6 +525,7 @@ namespace WirePeep
 		private void EditPeerGroupsExecuted(object sender, ExecutedRoutedEventArgs e)
 		{
 			this.EditPeerGroups();
+			this.TryFocus(this.statusGrid);
 		}
 
 		private void ExportLogCanExecute(object sender, CanExecuteRoutedEventArgs e) => e.CanExecute = this.logRows.Count > 0;
@@ -614,6 +640,8 @@ namespace WirePeep
 					}
 				}
 			}
+
+			this.TryFocus(this.statusGrid);
 		}
 
 		private void CopyCanExecute(object sender, CanExecuteRoutedEventArgs e) => e.CanExecute = this.SelectedGrid?.SelectedItem != null;
@@ -713,10 +741,10 @@ namespace WirePeep
 			// Setting this WindowState after Load will briefly show the window on the screen (due to Load's call to SetWindowPlacement).
 			// However, then it will minimize to the correct monitor's taskbar, and the taskbar's thumbnail will be a correct image.
 			// If we did the following code before calling this.windowSaver.Load() above:
-			//     if (this.appOptions.StartMinimized) this.windowSaver.LoadStateOverride = WindowState.Minimized;
+			//     if (this.StartMinimized) this.windowSaver.LoadStateOverride = WindowState.Minimized;
 			// Then we wouldn't see the flicker, but we'd always end up minimized on the primary taskbar and without a thumbnail image.
 			// Accepting the brief flicker seems like the best alternative.
-			if (this.appOptions.StartMinimized && !this.appOptions.MinimizeToTray)
+			if (this.StartMinimized && !this.appOptions.MinimizeToTray)
 			{
 				this.WindowState = WindowState.Minimized;
 			}
@@ -742,6 +770,21 @@ namespace WirePeep
 			if (e.Button == W.MouseButtons.Left)
 			{
 				this.NotifyIconViewMenuClick(sender, e);
+			}
+		}
+
+		private void UnselectCanExecute(object sender, CanExecuteRoutedEventArgs e)
+		{
+			e.CanExecute = this.SelectedGrid?.SelectedItem != null;
+		}
+
+		private void UnselectExecuted(object sender, ExecutedRoutedEventArgs e)
+		{
+			DataGrid grid = this.SelectedGrid;
+			if (grid != null)
+			{
+				grid.SelectedItem = null;
+				this.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
 			}
 		}
 

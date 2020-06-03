@@ -1,3 +1,6 @@
+ [![Latest Release](https://img.shields.io/github/v/release/menees/WirePeep)](https://github.com/menees/WirePeep/releases)
+![windows build](https://github.com/menees/Hasher/workflows/windows%20build/badge.svg)
+
 ![WirePeep Icon](src/WirePeep/Images/WirePeep.svg)
 # WirePeep
 WirePeep is a free, open-source network downtime monitor written in C# with WPF, .NET Core, and .NET Framework. It periodically checks for connectivity to your Internet gateway, various public DNS servers, and other systems (e.g., your cable modem). When it can't connect to any system in a peer group for a configurable fail time, it alerts that the group is inaccessible.

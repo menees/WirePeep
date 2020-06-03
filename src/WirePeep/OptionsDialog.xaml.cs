@@ -50,9 +50,10 @@ namespace WirePeep
 			this.Owner = owner;
 
 			this.runAtLogin.IsChecked = appOptions.RunAtLogin;
-			this.startMinimized.IsChecked = appOptions.StartMinimized;
+			this.autoStartMinimized.IsChecked = appOptions.AutoStartMinimized;
 			this.minimizeToTray.IsChecked = appOptions.MinimizeToTray;
 			this.alwaysOnTop.IsChecked = appOptions.AlwaysOnTop;
+			this.confirmClose.IsChecked = appOptions.ConfirmClose;
 
 			this.showWindowOnFailure.IsChecked = appOptions.FailureOptions.ShowWindow;
 			this.showNotificationOnFailure.IsChecked = appOptions.FailureOptions.ShowNotification;
@@ -73,9 +74,10 @@ namespace WirePeep
 			if (result)
 			{
 				appOptions.RunAtLogin = this.runAtLogin.IsChecked ?? false;
-				appOptions.StartMinimized = this.startMinimized.IsChecked ?? false;
+				appOptions.AutoStartMinimized = this.autoStartMinimized.IsChecked ?? false;
 				appOptions.MinimizeToTray = this.minimizeToTray.IsChecked ?? false;
 				appOptions.AlwaysOnTop = this.alwaysOnTop.IsChecked ?? false;
+				appOptions.ConfirmClose = this.confirmClose.IsChecked ?? false;
 
 				appOptions.FailureOptions.ShowWindow = this.showWindowOnFailure.IsChecked ?? false;
 				appOptions.FailureOptions.ShowNotification = this.showNotificationOnFailure.IsChecked ?? false;

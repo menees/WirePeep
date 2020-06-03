@@ -23,9 +23,10 @@ namespace WirePeep
 			if (settingsNode != null)
 			{
 				this.RunAtLogin = settingsNode.GetValue(nameof(this.RunAtLogin), this.RunAtLogin);
-				this.StartMinimized = settingsNode.GetValue(nameof(this.StartMinimized), this.StartMinimized);
+				this.AutoStartMinimized = settingsNode.GetValue(nameof(this.AutoStartMinimized), this.AutoStartMinimized);
 				this.MinimizeToTray = settingsNode.GetValue(nameof(this.MinimizeToTray), this.MinimizeToTray);
 				this.AlwaysOnTop = settingsNode.GetValue(nameof(this.AlwaysOnTop), this.AlwaysOnTop);
+				this.ConfirmClose = settingsNode.GetValue(nameof(this.ConfirmClose), this.ConfirmClose);
 			}
 
 			// Interesting info about %SystemRoot% vs %WinDir%: https://superuser.com/a/638335/430448
@@ -42,11 +43,13 @@ namespace WirePeep
 
 		public bool RunAtLogin { get; set; }
 
-		public bool StartMinimized { get; set; }
+		public bool AutoStartMinimized { get; set; }
 
 		public bool MinimizeToTray { get; set; }
 
 		public bool AlwaysOnTop { get; set; }
+
+		public bool ConfirmClose { get; set; }
 
 		public AlertOptions FailureOptions { get; }
 
@@ -61,9 +64,10 @@ namespace WirePeep
 		public void Save(ISettingsNode settingsNode)
 		{
 			settingsNode.SetValue(nameof(this.RunAtLogin), this.RunAtLogin);
-			settingsNode.SetValue(nameof(this.StartMinimized), this.StartMinimized);
+			settingsNode.SetValue(nameof(this.AutoStartMinimized), this.AutoStartMinimized);
 			settingsNode.SetValue(nameof(this.MinimizeToTray), this.MinimizeToTray);
 			settingsNode.SetValue(nameof(this.AlwaysOnTop), this.AlwaysOnTop);
+			settingsNode.SetValue(nameof(this.ConfirmClose), this.ConfirmClose);
 
 			this.FailureOptions.Save(settingsNode.GetSubNode(nameof(this.FailureOptions), true));
 			this.ReconnectOptions.Save(settingsNode.GetSubNode(nameof(this.ReconnectOptions), true));
@@ -76,7 +80,13 @@ namespace WirePeep
 			{
 				if (this.RunAtLogin)
 				{
-					runKey.SetValue(nameof(WirePeep), TextUtility.EnsureQuotes(ApplicationInfo.ExecutableFile));
+					string commandLine = TextUtility.EnsureQuotes(ApplicationInfo.ExecutableFile);
+					if (this.AutoStartMinimized)
+					{
+						commandLine += " /Minimize";
+					}
+
+					runKey.SetValue(nameof(WirePeep), commandLine);
 				}
 				else
 				{

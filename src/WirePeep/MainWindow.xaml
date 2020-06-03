@@ -9,7 +9,7 @@
 		mc:Ignorable="d"
 		Title="WirePeep - Network Downtime Monitor" Height="450" Width="800"
 		FocusManager.FocusedElement="{Binding ElementName=statusGrid}"
-				  Loaded="WindowLoaded" Activated="WindowActivated" StateChanged="WindowStateChanged" Closing="WindowClosing" Closed="WindowClosed" >
+				  Loaded="WindowLoaded" Activated="WindowActivated" StateChanged="WindowStateChanged" Closing="WindowClosing" Closed="WindowClosed" ResizeMode="CanResizeWithGrip" >
 
     <Window.CommandBindings>
         <CommandBinding Command="local:Commands.AddLocation" Executed="AddLocationExecuted" />
@@ -23,7 +23,8 @@
         <CommandBinding Command="local:Commands.DeleteItem" Executed="DeleteItemExecuted" CanExecute="DeleteItemCanExecute"/>
         <CommandBinding Command="local:Commands.CopyValue" Executed="CopyValueExecuted" CanExecute="CopyCanExecute"/>
         <CommandBinding Command="local:Commands.CopyRow" Executed="CopyRowExecuted" CanExecute="CopyCanExecute"/>
-    </Window.CommandBindings>
+		<CommandBinding Command="local:Commands.Unselect" Executed="UnselectExecuted" CanExecute="UnselectCanExecute"/>
+	</Window.CommandBindings>
 
     <Window.Resources>
         <local:StatusRowCollection x:Key="StatusRows"/>
@@ -39,7 +40,7 @@
 			<CollectionViewSource.SortDescriptions>
 				<comp:SortDescription PropertyName="GroupName"/>
 				<comp:SortDescription PropertyName="LocationName"/>
-				<comp:SortDescription PropertyName="LocationAddress"/>
+				<comp:SortDescription PropertyName="LocationAddressText"/>
 			</CollectionViewSource.SortDescriptions>
         </CollectionViewSource>
 
@@ -140,9 +141,9 @@
     <Grid x:Name="windowLayoutGrid">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition MinHeight="25"/>
+            <RowDefinition Height="4*" MinHeight="25"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition MinHeight="25"/>
+            <RowDefinition Height="1*" MinHeight="25"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
@@ -242,7 +243,9 @@
                     <Separator/>
                     <MenuItem Header="Copy _Value" Command="local:Commands.CopyValue"/>
                     <MenuItem Header="Copy _Row" Command="local:Commands.CopyRow"/>
-                </ContextMenu>
+					<Separator/>
+					<MenuItem Header="_Unselect" Command="local:Commands.Unselect"/>
+				</ContextMenu>
             </DataGrid.ContextMenu>
 
 			<DataGrid.InputBindings>
@@ -293,7 +296,9 @@
                     <MenuItem Header="Copy _Row" Command="local:Commands.CopyRow"/>
                     <Separator/>
                     <MenuItem Header="_Export Log..." Command="local:Commands.ExportLog"/>
-                </ContextMenu>
+					<Separator/>
+					<MenuItem Header="_Unselect" Command="local:Commands.Unselect"/>
+				</ContextMenu>
             </DataGrid.ContextMenu>
 
 			<DataGrid.InputBindings>

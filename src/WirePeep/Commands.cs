@@ -21,6 +21,8 @@ namespace WirePeep
 
 		public static readonly RoutedUICommand About = new RoutedUICommand(nameof(About), nameof(About), typeof(Commands));
 
+		public static readonly RoutedUICommand Unselect = new RoutedUICommand(nameof(Unselect), nameof(Unselect), typeof(Commands));
+
 		public static readonly RoutedUICommand ExportLog = new RoutedUICommand(
 			"Export Log",
 			nameof(ExportLog),

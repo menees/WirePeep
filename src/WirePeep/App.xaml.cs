@@ -61,9 +61,10 @@ namespace WirePeep
 				base.OnStartup(e);
 
 				this.mainWindow = new MainWindow();
+				this.mainWindow.StartMinimized = e.Args.Any(arg => arg.Equals("/Minimize", StringComparison.OrdinalIgnoreCase));
 
 				AppOptions appOptions = this.mainWindow.LoadNonWindowSettings();
-				if (appOptions.StartMinimized)
+				if (this.mainWindow.StartMinimized)
 				{
 					this.mainWindow.WindowState = WindowState.Minimized;
 
@@ -92,6 +93,12 @@ namespace WirePeep
 			// But our process is exiting, so Windows will release the mutex automatically when we fully exit.
 			// https://stackoverflow.com/a/32535863/1882616
 			this.singleInstanceMutex?.Dispose();
+		}
+
+		protected override void OnSessionEnding(SessionEndingCancelEventArgs e)
+		{
+			this.mainWindow.IsSessionEnding = true;
+			base.OnSessionEnding(e);
 		}
 
 		#endregion

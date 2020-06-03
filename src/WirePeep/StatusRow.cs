@@ -57,7 +57,23 @@ namespace WirePeep
 
 		public string LocationName { get => this.locationName; set => this.Update(ref this.locationName, value); }
 
-		public IPAddress LocationAddress { get => this.locationAddress; set => this.Update(ref this.locationAddress, value); }
+		public IPAddress LocationAddress
+		{
+			get => this.locationAddress;
+			set
+			{
+				if (this.Update(ref this.locationAddress, value))
+				{
+					// The MainWindow's CollectionViewSource.SortDescriptions require all the sort description properties
+					// to implement IComparable, but IPAddress doesn't. This string property is a workaround. It's really
+					// only needed when two locations in the same group have the same LocationName because then the
+					// IPAddress is the final sort tie-breaker.
+					this.OnPropertyChanged(nameof(this.LocationAddressText));
+				}
+			}
+		}
+
+		public string LocationAddressText => this.LocationAddress.ToString();
 
 		public bool? IsLocationConnected { get => this.isLocationConnected; set => this.Update(ref this.isLocationConnected, value); }
 
