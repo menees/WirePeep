@@ -134,7 +134,7 @@ namespace WirePeep
 			List<string> errors = new List<string>();
 
 			string folder = this.LogFolder;
-			if (!Directory.Exists(folder))
+			if (!string.IsNullOrEmpty(folder) && !Directory.Exists(folder))
 			{
 				errors.Add("The specified log folder doesn't exist.");
 			}

@@ -32,8 +32,6 @@ namespace WirePeep
 
 		public Logger(string fileName, bool isSimple)
 		{
-			Conditions.RequireString(fileName, nameof(fileName));
-
 			this.FileName = fileName;
 			this.IsSimple = isSimple;
 		}
@@ -142,7 +140,7 @@ namespace WirePeep
 
 		public IDisposable BeginBatch()
 		{
-			if (this.batchDepth++ == 0)
+			if (this.batchDepth++ == 0 && !string.IsNullOrEmpty(this.FileName))
 			{
 				bool create = this.IsSimple && this.headers.Count == 0;
 				this.writer = create ? File.CreateText(this.FileName) : File.AppendText(this.FileName);
@@ -180,7 +178,11 @@ namespace WirePeep
 
 		private void AddValues(params object[] values)
 		{
-			CsvUtility.WriteLine(this.writer, values);
+			// this.writer can be null if no log file name was provided (e.g., no log folder is configured).
+			if (this.writer != null)
+			{
+				CsvUtility.WriteLine(this.writer, values);
+			}
 		}
 
 		#endregion

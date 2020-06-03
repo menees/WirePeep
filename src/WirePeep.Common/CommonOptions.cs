@@ -82,26 +82,32 @@ namespace WirePeep
 
 		public string GetFullLogFileName(DateTime utcNow)
 		{
-			const string Extension = ".txt";
-			const string DateTimeFormat = "_yyyy-MM-dd_HH-mm-ss";
+			string result = null;
 
-			string fileName = nameof(WirePeep);
-			switch (this.logFileNameFormat)
+			if (Directory.Exists(this.LogFolder))
 			{
-				case LogFileNameFormat.Fixed:
-					fileName += Extension;
-					break;
+				const string Extension = ".txt";
+				const string DateTimeFormat = "_yyyy-MM-dd_HH-mm-ss";
 
-				case LogFileNameFormat.LocalNow:
-					fileName += utcNow.ToLocalTime().ToString(DateTimeFormat) + Extension;
-					break;
+				string fileName = nameof(WirePeep);
+				switch (this.logFileNameFormat)
+				{
+					case LogFileNameFormat.Fixed:
+						fileName += Extension;
+						break;
 
-				default: // LogFileNameFormat.UtcNow:
-					fileName += utcNow.ToString(DateTimeFormat) + "Z" + Extension;
-					break;
+					case LogFileNameFormat.LocalNow:
+						fileName += utcNow.ToLocalTime().ToString(DateTimeFormat) + Extension;
+						break;
+
+					default: // LogFileNameFormat.UtcNow:
+						fileName += utcNow.ToString(DateTimeFormat) + "Z" + Extension;
+						break;
+				}
+
+				result = Path.Combine(this.LogFolder, fileName);
 			}
 
-			string result = Path.Combine(this.LogFolder, fileName);
 			return result;
 		}
 
@@ -119,57 +125,19 @@ namespace WirePeep
 
 		private void ValidateLogFolder()
 		{
-			static bool Check(string folder) => Directory.Exists(folder);
-
-			static string GetAppFolder(string folder) => Path.Combine(folder, ApplicationInfo.ApplicationName);
-
-			static string GetEnvironmentPath(string variable, string subFolder)
+			if (!string.IsNullOrEmpty(this.logFolder) && !Directory.Exists(this.logFolder))
 			{
-				string variablePath = Environment.GetEnvironmentVariable(variable);
-				if (!string.IsNullOrEmpty(variablePath) && !string.IsNullOrEmpty(subFolder))
+				try
 				{
-					variablePath = Path.Combine(variablePath, subFolder);
+					Directory.CreateDirectory(this.logFolder);
 				}
-
-				return variablePath;
-			}
-
-			if (!Check(this.logFolder))
-			{
-				List<string> candidateFolders = new List<string>();
-				candidateFolders.Add(GetEnvironmentPath("OneDriveConsumer", "Documents"));
-				candidateFolders.Add(GetEnvironmentPath("OneDriveCommercial", "Documents"));
-				candidateFolders.Add(GetEnvironmentPath("OneDrive", "Documents"));
-				candidateFolders.Add(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
-				candidateFolders.Add(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
-
-				candidateFolders = candidateFolders.Where(folder => Check(folder)).Select(folder => GetAppFolder(folder)).ToList();
-				this.logFolder = candidateFolders.FirstOrDefault(folder => Check(folder));
-				if (string.IsNullOrEmpty(this.logFolder))
+				catch (IOException ex)
 				{
-					foreach (string folder in candidateFolders)
-					{
-						try
-						{
-							Directory.CreateDirectory(folder);
-							this.logFolder = folder;
-							break;
-						}
-						catch (IOException ex)
-						{
-							Log.Error(this.GetType(), "I/O exception creating log folder.", ex);
-						}
-						catch (UnauthorizedAccessException ex)
-						{
-							Log.Error(this.GetType(), "Unauthorized access exception creating log folder.", ex);
-						}
-					}
-
-					if (string.IsNullOrEmpty(this.logFolder))
-					{
-						this.logFolder = GetAppFolder(Path.GetTempPath());
-						Directory.CreateDirectory(this.logFolder);
-					}
+					Log.Error(this.GetType(), "I/O exception creating log folder.", ex);
+				}
+				catch (UnauthorizedAccessException ex)
+				{
+					Log.Error(this.GetType(), "Unauthorized access exception creating log folder.", ex);
 				}
 			}
 		}
