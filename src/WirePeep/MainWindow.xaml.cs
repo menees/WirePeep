@@ -572,6 +572,14 @@ namespace WirePeep
 					StateSnapshot states = this.stateManager.Update(this.simulateFailure);
 					this.Dispatcher.BeginInvoke(new Action(() => this.UpdateStates(states)));
 				}
+#pragma warning disable CA1031 // Do not catch general exception types. Timer callback has to catch all to prevent program termination.
+				catch (Exception ex)
+#pragma warning restore CA1031 // Do not catch general exception types
+				{
+					// If we don't handle all exceptions here, then the app will go away and log a .NET Runtime error in the event log like:
+					// "The process was terminated due to an unhandled exception."
+					Log.Error(this.GetType(), "An unhandled exception occurred on the background timer thread.", ex);
+				}
 				finally
 				{
 					Interlocked.Exchange(ref this.updatingLock, 0);
