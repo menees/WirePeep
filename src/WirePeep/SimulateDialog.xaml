@@ -1,0 +1,37 @@
+﻿<m:ExtendedDialog x:Class="WirePeep.SimulateDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+		xmlns:m="http://menees.com/xaml"
+        xmlns:local="clr-namespace:WirePeep"
+        mc:Ignorable="d"
+        Title="Simulate Connection" Width="400" Height="212"
+		FocusManager.FocusedElement="{Binding ElementName=none}">
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition/>
+			<RowDefinition Height="Auto"/>
+		</Grid.RowDefinitions>
+
+		<StackPanel Orientation="Vertical" Margin="12">
+			<StackPanel.Resources>
+				<Style TargetType="RadioButton">
+					<Setter Property="Margin" Value="6"/>
+				</Style>
+			</StackPanel.Resources>
+			<RadioButton x:Name="none">No simulation (i.e., actual network state)</RadioButton>
+			<RadioButton x:Name="unavailable">Simulate network unavailable (e.g., during Windows startup)</RadioButton>
+			<RadioButton x:Name="connected">Simulate connected</RadioButton>
+			<RadioButton x:Name="disconnected">Simulate disconnected</RadioButton>
+		</StackPanel>
+
+		<Border Grid.Row="1" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
+			<StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+				<Button Content="_OK" Width="60" Margin="12,12,0,12" IsDefault="True" m:ExtendedDialog.DialogResult="True"/>
+				<Button Content="_Cancel" Width="60" Margin="12" IsCancel="True"/>
+			</StackPanel>
+		</Border>
+	</Grid>
+
+</m:ExtendedDialog>

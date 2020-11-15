@@ -58,18 +58,18 @@ namespace WirePeep
 			return result;
 		}
 
-		public bool CanPing(IPAddress address)
+		public bool? TryPing(IPAddress address)
 		{
 			PingReply reply = this.TrySend(address);
-			bool result = reply?.Status == IPStatus.Success;
+			bool? result = reply != null ? reply.Status == IPStatus.Success : null;
 			return result;
 		}
 
-		public bool TryPing(IPAddress address, out TimeSpan roundtripTime)
+		public bool? TryPing(IPAddress address, out TimeSpan roundtripTime)
 		{
 			PingReply reply = this.TrySend(address);
 			roundtripTime = TimeSpan.FromMilliseconds(reply?.RoundtripTime ?? 0);
-			bool result = reply?.Status == IPStatus.Success;
+			bool? result = reply != null ? reply.Status == IPStatus.Success : null;
 			return result;
 		}
 
@@ -99,6 +99,10 @@ namespace WirePeep
 				// bit before the network stack was ready. So the internal IcmpSendEcho2 call
 				// returned a failure code, but it wasn't captured in the logged exception details.
 				// Now, I'll just treat PingExceptions the same as failed pings but without a PingReply.
+				//
+				// Technically, we could call NetworkInterface.GetIsNetworkAvailable() to check if
+				// Windows networking is available yet. But that polls all adapters to see if any are up.
+				// For efficiency, we might as well just use the exception state to indicate "Unavailable".
 				IDictionary<string, object> context = null;
 				if (ex.InnerException is Win32Exception win32)
 				{

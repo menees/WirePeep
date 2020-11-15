@@ -46,7 +46,7 @@ namespace WirePeep
 		private Timer backgroundTimer;
 		private int updatingLock;
 		private bool closing;
-		private bool simulateFailure;
+		private ConnectionState? simulateConnection;
 		private DataGrid selectedGrid;
 		private Logger logger;
 		private int failureId;
@@ -188,9 +188,6 @@ namespace WirePeep
 			TimeSpan monitored = this.stateManager.Monitored;
 			monitored = ConvertUtility.RoundToSeconds(monitored);
 			this.monitoredTime.Text = monitored.ToString();
-
-			// Optionally, simulate a failure when ScrollLock is toggled on.
-			this.simulateFailure = this.CommonOptions.ScrollLockSimulatesFailure && Keyboard.IsKeyToggled(Key.Scroll);
 		}
 
 		private void UpdateStatusRows(StateSnapshot states)
@@ -562,6 +559,12 @@ namespace WirePeep
 			WindowsUtility.ShowAboutBox(this, typeof(MainWindow).Assembly);
 		}
 
+		private void SimulateConnectionExecuted(object sender, ExecutedRoutedEventArgs e)
+		{
+			SimulateDialog dialog = new SimulateDialog();
+			dialog.Execute(this, ref this.simulateConnection);
+		}
+
 		private void BackgroundTimerCallback(object state)
 		{
 			// Only let one Update run at a time. If the callback takes longer than 1 second, it will be invoked again from another thread.
@@ -569,7 +572,7 @@ namespace WirePeep
 			{
 				try
 				{
-					StateSnapshot states = this.stateManager.Update(this.simulateFailure);
+					StateSnapshot states = this.stateManager.Update(this.simulateConnection);
 					this.Dispatcher.BeginInvoke(new Action(() => this.UpdateStates(states)));
 				}
 #pragma warning disable CA1031 // Do not catch general exception types. Timer callback has to catch all to prevent program termination.
@@ -794,6 +797,13 @@ namespace WirePeep
 				grid.SelectedItem = null;
 				this.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
 			}
+		}
+
+		private void ViewMenuItem_SubmenuOpened(object sender, RoutedEventArgs e)
+		{
+			this.simulateConnectionMenu.Visibility = ApplicationInfo.IsDebugBuild ||
+				(Keyboard.IsKeyDown(Key.LeftCtrl) && Keyboard.IsKeyDown(Key.LeftAlt) && Keyboard.IsKeyDown(Key.LeftShift))
+				? Visibility.Visible : Visibility.Collapsed;
 		}
 
 		#endregion

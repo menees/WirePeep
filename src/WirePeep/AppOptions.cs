@@ -78,6 +78,8 @@ namespace WirePeep
 		{
 			using (RegistryKey runKey = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run", true))
 			{
+				// Don't let the Debug/development app blow away the Release/production app's key.
+				string keyName = nameof(WirePeep) + (ApplicationInfo.IsDebugBuild ? " Debug" : string.Empty);
 				if (this.RunAtLogin)
 				{
 					string commandLine = TextUtility.EnsureQuotes(ApplicationInfo.ExecutableFile);
@@ -86,11 +88,11 @@ namespace WirePeep
 						commandLine += " /Minimize";
 					}
 
-					runKey.SetValue(nameof(WirePeep), commandLine);
+					runKey.SetValue(keyName, commandLine);
 				}
 				else
 				{
-					runKey.DeleteValue(nameof(WirePeep), false);
+					runKey.DeleteValue(keyName, false);
 				}
 			}
 

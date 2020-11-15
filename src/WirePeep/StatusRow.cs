@@ -22,13 +22,13 @@ namespace WirePeep
 		private int groupFailSeconds;
 		private int groupPollSeconds;
 		private int groupWaitMilliseconds;
-		private bool isGroupAccessible;
+		private ConnectionState groupConnection;
 		private bool hasGroupEverFailed;
 		private TimeSpan timeSinceLastGroupFail;
 
 		private string locationName;
 		private IPAddress locationAddress;
-		private bool? isLocationConnected;
+		private ConnectionState locationConnection;
 		private int? locationRoundtripMilliseconds;
 		private bool isLocationUpToDate;
 		private Guid locationId;
@@ -45,7 +45,7 @@ namespace WirePeep
 
 		public int GroupWaitMilliseconds { get => this.groupWaitMilliseconds; set => this.Update(ref this.groupWaitMilliseconds, value); }
 
-		public bool IsGroupAccessible { get => this.isGroupAccessible; set => this.Update(ref this.isGroupAccessible, value); }
+		public ConnectionState GroupConnection { get => this.groupConnection; set => this.Update(ref this.groupConnection, value); }
 
 		public bool HasGroupEverFailed { get => this.hasGroupEverFailed; set => this.Update(ref this.hasGroupEverFailed, value); }
 
@@ -75,7 +75,7 @@ namespace WirePeep
 
 		public string LocationAddressText => this.LocationAddress.ToString();
 
-		public bool? IsLocationConnected { get => this.isLocationConnected; set => this.Update(ref this.isLocationConnected, value); }
+		public ConnectionState LocationConnection { get => this.locationConnection; set => this.Update(ref this.locationConnection, value); }
 
 		public int? LocationRoundtripMilliseconds
 		{
@@ -98,7 +98,7 @@ namespace WirePeep
 			this.GroupFailSeconds = (int)peerGroup.Fail.TotalSeconds;
 			this.GroupPollSeconds = (int)peerGroup.Poll.TotalSeconds;
 			this.GroupWaitMilliseconds = (int)peerGroup.Wait.TotalMilliseconds;
-			this.IsGroupAccessible = !peerGroupState.IsFailed;
+			this.GroupConnection = peerGroupState.IsFailed ? ConnectionState.Disconnected : peerGroupState.Connection;
 			this.HasGroupEverFailed = peerGroupState.IsFailedChanged != null;
 			this.TimeSinceLastGroupFail = this.HasGroupEverFailed
 				? ConvertUtility.RoundToSeconds(peerGroupState.LastUpdateRequest - peerGroupState.IsFailedChanged.Value)
@@ -107,8 +107,10 @@ namespace WirePeep
 			Location location = locationState.Location;
 			this.LocationName = location.Name;
 			this.LocationAddress = location.Address;
-			this.IsLocationConnected = locationState.IsConnected;
-			this.LocationRoundtripMilliseconds = locationState.IsConnected ?? false ? (int)locationState.RoundtripTime.TotalMilliseconds : (int?)null;
+			this.LocationConnection = locationState.Connection;
+			this.LocationRoundtripMilliseconds = locationState.Connection == ConnectionState.Connected
+				? (int)locationState.RoundtripTime.TotalMilliseconds
+				: (int?)null;
 			this.IsLocationUpToDate = locationState.UpdateCounter == peerGroupState.UpdateCounter;
 			this.LocationId = location.Id;
 		}

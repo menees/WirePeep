@@ -26,11 +26,11 @@ namespace WirePeep
 
 		public PeerGroup PeerGroup { get; }
 
-		public bool IsConnected { get; private set; }
+		public ConnectionState Connection { get; private set; }
 
 		public long UpdateCounter { get; private set; }
 
-		public DateTime? IsConnectedChanged { get; private set; }
+		public DateTime? ConnectionChanged { get; private set; }
 
 		public bool IsFailed { get; private set; }
 
@@ -46,7 +46,7 @@ namespace WirePeep
 
 		public override string ToString() => this.PeerGroup.ToString();
 
-		public void Update(DateTime utcNow, IReadOnlyList<LocationState> locations, bool simulateFailure)
+		public void Update(DateTime utcNow, IReadOnlyList<LocationState> locations, ConnectionState? simulateConnection)
 		{
 			this.LastUpdateRequest = utcNow;
 			if (this.PeerGroup.CanPoll(utcNow, this.LastUpdated))
@@ -57,44 +57,46 @@ namespace WirePeep
 				// updated an item and so we'll round-robin through each location in the list.
 				this.UpdateCounter++;
 
-				bool wasConnected = this.IsConnected;
+				ConnectionState priorConnection = this.Connection;
 
-				bool? isPeerGroupConnected = null;
+				ConnectionState? peerGroupConnection = null;
 				int numLocations = locations.Count;
 				for (int i = 0; i < numLocations; i++)
 				{
 					int locationIndex = (int)unchecked((this.UpdateCounter + i) % numLocations);
 					LocationState locationState = locations[locationIndex];
-					bool? wasLocationUpdated = locationState.Update(utcNow, this.UpdateCounter, simulateFailure);
+					bool? wasLocationUpdated = locationState.Update(utcNow, this.UpdateCounter, simulateConnection);
 
 					// A null result means we've polled it too recently.
 					if (wasLocationUpdated != null)
 					{
-						// If we get a connected result, then we can quit early.
-						isPeerGroupConnected = locationState.IsConnected;
-						if (isPeerGroupConnected ?? false)
+						// If we get a Connected result, then we can quit early.
+						// If we only get Disconnected or Unavailable, then we have to check them all.
+						peerGroupConnection = locationState.Connection;
+						if (peerGroupConnection == ConnectionState.Connected)
 						{
 							break;
 						}
 					}
 				}
 
-				if (isPeerGroupConnected != null)
+				// This should only be null when we've polled all the locations too recently, so Connection shouldn't change.
+				if (peerGroupConnection != null)
 				{
-					this.IsConnected = isPeerGroupConnected.Value;
+					this.Connection = peerGroupConnection.Value;
 				}
 
-				if (this.IsConnected != wasConnected)
+				if (this.Connection != priorConnection)
 				{
-					this.IsConnectedChanged = utcNow;
+					this.ConnectionChanged = utcNow;
 				}
 
 				bool wasFailed = this.IsFailed;
-				if (this.IsConnected)
+				if (this.Connection == ConnectionState.Connected || this.Connection == ConnectionState.Unavailable)
 				{
 					this.IsFailed = false;
 				}
-				else if (!this.IsFailed && (this.IsConnectedChanged == null || utcNow >= (this.IsConnectedChanged.Value + this.PeerGroup.Fail)))
+				else if (!this.IsFailed && (this.ConnectionChanged == null || utcNow >= (this.ConnectionChanged.Value + this.PeerGroup.Fail)))
 				{
 					this.IsFailed = true;
 				}

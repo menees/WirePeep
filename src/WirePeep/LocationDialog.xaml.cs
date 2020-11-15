@@ -148,7 +148,7 @@ namespace WirePeep
 				const int WaitMilliseconds = 200;
 				using (Pinger pinger = new Pinger(TimeSpan.FromMilliseconds(WaitMilliseconds)))
 				{
-					if (!pinger.CanPing(location.Address))
+					if (!(pinger.TryPing(location.Address) ?? false))
 					{
 						// Occasionally, a ping will be lost, and it's ok. The user might also want to configure
 						// a site to watch that is known to be intermittently available.

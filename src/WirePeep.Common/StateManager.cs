@@ -54,7 +54,7 @@ namespace WirePeep
 
 		#region Public Methods
 
-		public StateSnapshot Update(bool simulateFailure)
+		public StateSnapshot Update(ConnectionState? simulateConnection)
 		{
 			Dictionary<PeerGroupState, List<LocationState>> mapCopy;
 			lock (this.mapLock)
@@ -64,7 +64,7 @@ namespace WirePeep
 
 			DateTime utcNow = DateTime.UtcNow;
 			ParallelOptions options = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount / 2 };
-			Parallel.ForEach(mapCopy, options, pair => pair.Key.Update(utcNow, pair.Value, simulateFailure));
+			Parallel.ForEach(mapCopy, options, pair => pair.Key.Update(utcNow, pair.Value, simulateConnection));
 
 			StateSnapshot result = new StateSnapshot(utcNow, mapCopy.Count);
 			foreach (var pair in mapCopy)

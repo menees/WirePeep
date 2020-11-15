@@ -28,7 +28,6 @@ namespace WirePeep
 			{
 				this.logFileNameFormat = settingsNode.GetValue(nameof(this.LogFileNameFormat), this.LogFileNameFormat);
 				this.logFolder = settingsNode.GetValue(nameof(this.LogFolder), string.Empty);
-				this.ScrollLockSimulatesFailure = settingsNode.GetValue(nameof(this.ScrollLockSimulatesFailure), this.ScrollLockSimulatesFailure);
 			}
 
 			this.ValidateLogFileNameFormat();
@@ -67,8 +66,6 @@ namespace WirePeep
 			}
 		}
 
-		public bool ScrollLockSimulatesFailure { get; set; } = ApplicationInfo.IsDebugBuild;
-
 		#endregion
 
 		#region Public Methods
@@ -77,7 +74,6 @@ namespace WirePeep
 		{
 			settingsNode.SetValue(nameof(this.LogFileNameFormat), this.logFileNameFormat);
 			settingsNode.SetValue(nameof(this.LogFolder), this.logFolder);
-			settingsNode.SetValue(nameof(this.ScrollLockSimulatesFailure), this.ScrollLockSimulatesFailure);
 		}
 
 		public string GetFullLogFileName(DateTime utcNow)

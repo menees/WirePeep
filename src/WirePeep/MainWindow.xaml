@@ -19,7 +19,8 @@
         <CommandBinding Command="local:Commands.ViewOptions" Executed="ViewOptionsExecuted" />
         <CommandBinding Command="Help" Executed="HelpExecuted" />
         <CommandBinding Command="local:Commands.About" Executed="AboutExecuted" />
-        <CommandBinding Command="local:Commands.EditItem" Executed="EditItemExecuted" CanExecute="EditItemCanExecute"/>
+		<CommandBinding Command="local:Commands.SimulateConnection" Executed="SimulateConnectionExecuted" />
+		<CommandBinding Command="local:Commands.EditItem" Executed="EditItemExecuted" CanExecute="EditItemCanExecute"/>
         <CommandBinding Command="local:Commands.DeleteItem" Executed="DeleteItemExecuted" CanExecute="DeleteItemCanExecute"/>
         <CommandBinding Command="local:Commands.CopyValue" Executed="CopyValueExecuted" CanExecute="CopyCanExecute"/>
         <CommandBinding Command="local:Commands.CopyRow" Executed="CopyRowExecuted" CanExecute="CopyCanExecute"/>
@@ -72,6 +73,10 @@
         <Geometry x:Key="DisconnectedPathData">
             M20 6.91L17.09 4L12 9.09L6.91 4L4 6.91L9.09 12L4 17.09L6.91 20L12 14.91L17.09 20L20 17.09L14.91 12L20 6.91Z
         </Geometry>
+		<!--https://materialdesignicons.com/icon/minus-thick-->
+		<Geometry x:Key="UnavailablePathData">
+			M20 14H4V10H20V14Z
+		</Geometry>
 
 		<BooleanToVisibilityConverter x:Key="BoolVisibility" />
 
@@ -87,13 +92,16 @@
                                 <!-- DataTrigger idea came from https://stackoverflow.com/a/8534694/1882616. -->
                                 <DockPanel.Style>
                                     <Style TargetType="DockPanel">
-                                        <!-- Default to light green; switch to light red if group isn't accessible. -->
+                                        <!-- Default to light green; switch to light red if group isn't connected. -->
                                         <Setter Property="Background" Value="#FFD2FFD2"/>
                                         <Style.Triggers>
-                                            <DataTrigger Binding="{Binding Items[0].IsGroupAccessible}" Value="False">
+                                            <DataTrigger Binding="{Binding Items[0].GroupConnection}" Value="Disconnected">
                                                 <Setter Property="Background" Value="#FFFFD2D2"/>
                                             </DataTrigger>
-                                        </Style.Triggers>
+											<DataTrigger Binding="{Binding Items[0].GroupConnection}" Value="Unavailable">
+												<Setter Property="Background" Value="#FFEAEAEA"/>
+											</DataTrigger>
+										</Style.Triggers>
                                     </Style>
                                 </DockPanel.Style>
                                 <Viewbox Height="22" Margin="1">
@@ -104,11 +112,15 @@
                                                     <Setter Property="Fill" Value="Green"/>
                                                     <Setter Property="Data" Value="{StaticResource ConnectedPathData}"/>
                                                     <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding Items[0].IsGroupAccessible}" Value="False">
+                                                        <DataTrigger Binding="{Binding Items[0].GroupConnection}" Value="Disconnected">
                                                             <Setter Property="Fill" Value="Red"/>
                                                             <Setter Property="Data" Value="{StaticResource DisconnectedPathData}"/>
                                                         </DataTrigger>
-                                                    </Style.Triggers>
+														<DataTrigger Binding="{Binding Items[0].GroupConnection}" Value="Unavailable">
+															<Setter Property="Fill" Value="Gray"/>
+															<Setter Property="Data" Value="{StaticResource UnavailablePathData}"/>
+														</DataTrigger>
+													</Style.Triggers>
                                                 </Style>
                                             </Path.Style>
                                         </Path>
@@ -148,19 +160,20 @@
         </Grid.RowDefinitions>
 
         <Menu Grid.Row="0" Padding="2">
-            <MenuItem Header="_View">
+			<MenuItem Header="_View" SubmenuOpened="ViewMenuItem_SubmenuOpened">
 				<MenuItem Header="Edit _Peer Groups..." Command="local:Commands.EditPeerGroups"/>
 				<MenuItem Header="_Add Location..." Command="local:Commands.AddLocation"/>
 				<Separator/>
 				<MenuItem Header="_Export Log..." Command="local:Commands.ExportLog"/>
                 <MenuItem Header="_Options..." Command="local:Commands.ViewOptions"/>
-                <Separator/>
+				<MenuItem x:Name="simulateConnectionMenu" Header="_Simulate Connection..." Command="local:Commands.SimulateConnection"/>
+				<Separator/>
                 <MenuItem Header="E_xit" Command="local:Commands.Exit"/>
             </MenuItem>
             <MenuItem Header="_Help">
                 <MenuItem Header="_WirePeep.com" Command="Help"/>
-                <MenuItem Header="_About..." Command="local:Commands.About"/>
-            </MenuItem>
+				<MenuItem Header="_About..." Command="local:Commands.About"/>
+			</MenuItem>
         </Menu>
 
 		<DataGrid x:Name="statusGrid" Grid.Row="1" ItemsSource="{Binding Source={StaticResource StatusRowsView}}" Style="{StaticResource ListViewGrid}" GotFocus="StatusGridGotFocus" ContextMenuOpening="StatusGridContextMenuOpening" MouseDoubleClick="StatusGridMouseDoubleClick">
@@ -184,17 +197,19 @@
                                         <Path.Style>
                                             <Style TargetType="Path">
                                                 <Style.Triggers>
-                                                    <!-- IsLocationConnected is a bool? with a null default, so we show no Path for that. -->
-                                                    <DataTrigger Binding="{Binding IsLocationConnected}" Value="True">
+													<DataTrigger Binding="{Binding LocationConnection}" Value="Connected">
                                                         <Setter Property="Data" Value="{StaticResource ConnectedPathData}"/>
                                                     </DataTrigger>
-                                                    <DataTrigger Binding="{Binding IsLocationConnected}" Value="False">
+													<DataTrigger Binding="{Binding LocationConnection}" Value="Disconnected">
                                                         <Setter Property="Data" Value="{StaticResource DisconnectedPathData}"/>
                                                     </DataTrigger>
-                                                    <!-- MultiDataTrigger idea came from https://stackoverflow.com/a/42343062/1882616. -->
+													<DataTrigger Binding="{Binding LocationConnection}" Value="Unavailable">
+														<Setter Property="Data" Value="{StaticResource UnavailablePathData}"/>
+													</DataTrigger>
+													<!-- MultiDataTrigger idea came from https://stackoverflow.com/a/42343062/1882616. -->
                                                     <MultiDataTrigger>
                                                         <MultiDataTrigger.Conditions>
-                                                            <Condition Binding="{Binding IsLocationConnected}" Value="False" />
+															<Condition Binding="{Binding LocationConnection}" Value="Disconnected" />
                                                             <Condition Binding="{Binding IsLocationUpToDate}" Value="False" />
                                                         </MultiDataTrigger.Conditions>
                                                         <!-- 87% transparent red -->
@@ -202,14 +217,14 @@
                                                     </MultiDataTrigger>
                                                     <MultiDataTrigger>
                                                         <MultiDataTrigger.Conditions>
-                                                            <Condition Binding="{Binding IsLocationConnected}" Value="False" />
+															<Condition Binding="{Binding LocationConnection}" Value="Disconnected" />
                                                             <Condition Binding="{Binding IsLocationUpToDate}" Value="True" />
                                                         </MultiDataTrigger.Conditions>
                                                         <Setter Property="Fill" Value="Red"/>
                                                     </MultiDataTrigger>
                                                     <MultiDataTrigger>
                                                         <MultiDataTrigger.Conditions>
-                                                            <Condition Binding="{Binding IsLocationConnected}" Value="True" />
+															<Condition Binding="{Binding LocationConnection}" Value="Connected" />
                                                             <Condition Binding="{Binding IsLocationUpToDate}" Value="False" />
                                                         </MultiDataTrigger.Conditions>
                                                         <!-- 87% transparent green -->
@@ -217,12 +232,27 @@
                                                     </MultiDataTrigger>
                                                     <MultiDataTrigger>
                                                         <MultiDataTrigger.Conditions>
-                                                            <Condition Binding="{Binding IsLocationConnected}" Value="True" />
+															<Condition Binding="{Binding LocationConnection}" Value="Connected" />
                                                             <Condition Binding="{Binding IsLocationUpToDate}" Value="True" />
                                                         </MultiDataTrigger.Conditions>
                                                         <Setter Property="Fill" Value="Green"/>
                                                     </MultiDataTrigger>
-                                                </Style.Triggers>
+													<MultiDataTrigger>
+														<MultiDataTrigger.Conditions>
+															<Condition Binding="{Binding LocationConnection}" Value="Unavailable" />
+															<Condition Binding="{Binding IsLocationUpToDate}" Value="False" />
+														</MultiDataTrigger.Conditions>
+														<!-- 87% transparent gray -->
+														<Setter Property="Fill" Value="#20808080"/>
+													</MultiDataTrigger>
+													<MultiDataTrigger>
+														<MultiDataTrigger.Conditions>
+															<Condition Binding="{Binding LocationConnection}" Value="Unavailable" />
+															<Condition Binding="{Binding IsLocationUpToDate}" Value="True" />
+														</MultiDataTrigger.Conditions>
+														<Setter Property="Fill" Value="Gray"/>
+													</MultiDataTrigger>
+												</Style.Triggers>
                                             </Style>
                                         </Path.Style>
                                     </Path>
