@@ -14,8 +14,8 @@ jobs:
     - uses: actions/checkout@v2
     
     - name: Add MSBuild to PATH
-      uses: microsoft/setup-msbuild@v1.0.0
-      
+      uses: microsoft/setup-msbuild@v1      
+
     - name: Build everything
       run: |
         & .\eng\build.ps1 -build $true
