@@ -8,7 +8,7 @@
 		<RepositoryUrl>https://github.com/menees/WirePeep</RepositoryUrl>
 		<GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
 		<SignAssembly>true</SignAssembly>
-		<LangVersion>latest</LangVersion>
+		<LangVersion>8.0</LangVersion>
 		<Copyright>Copyright © 2002-2020 Bill Menees</Copyright>
 
 		<!-- These paths must be relative to the projects that include the property (not to this .props file). -->

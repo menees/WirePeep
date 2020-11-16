@@ -15,9 +15,7 @@ jobs:
     
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1
-      with:
-        vs-version: '[16.8,)' # C#9 is required
-    
+
     - name: Build everything
       run: |
         & .\eng\build.ps1 -build $true

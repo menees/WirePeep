@@ -61,7 +61,7 @@ namespace WirePeep
 		public bool? TryPing(IPAddress address)
 		{
 			PingReply reply = this.TrySend(address);
-			bool? result = reply != null ? reply.Status == IPStatus.Success : null;
+			bool? result = reply != null ? reply.Status == IPStatus.Success : (bool?)null;
 			return result;
 		}
 
@@ -69,7 +69,7 @@ namespace WirePeep
 		{
 			PingReply reply = this.TrySend(address);
 			roundtripTime = TimeSpan.FromMilliseconds(reply?.RoundtripTime ?? 0);
-			bool? result = reply != null ? reply.Status == IPStatus.Success : null;
+			bool? result = reply != null ? reply.Status == IPStatus.Success : (bool?)null;
 			return result;
 		}
 
