@@ -20,7 +20,7 @@ namespace WirePeep
 
 		private readonly Ping ping;
 		private readonly int waitMilliseconds;
-		private readonly PingOptions options;
+		private readonly PingOptions? options;
 
 		#endregion
 
@@ -42,13 +42,13 @@ namespace WirePeep
 
 		#region Public Methods
 
-		public static IPAddress GetAddressAtTtl(IPAddress searchAddress, int ttl, TimeSpan wait)
+		public static IPAddress? GetAddressAtTtl(IPAddress searchAddress, int ttl, TimeSpan wait)
 		{
-			IPAddress result = null;
+			IPAddress? result = null;
 
-			using (Pinger pinger = new Pinger(wait, ttl))
+			using (Pinger pinger = new(wait, ttl))
 			{
-				PingReply reply = pinger.TrySend(searchAddress);
+				PingReply? reply = pinger.TrySend(searchAddress);
 				if (reply?.Status == IPStatus.Success || reply?.Status == IPStatus.TtlExpired)
 				{
 					result = reply?.Address;
@@ -60,16 +60,16 @@ namespace WirePeep
 
 		public bool? TryPing(IPAddress address)
 		{
-			PingReply reply = this.TrySend(address);
-			bool? result = reply != null ? reply.Status == IPStatus.Success : (bool?)null;
+			PingReply? reply = this.TrySend(address);
+			bool? result = reply != null ? reply.Status == IPStatus.Success : null;
 			return result;
 		}
 
 		public bool? TryPing(IPAddress address, out TimeSpan roundtripTime)
 		{
-			PingReply reply = this.TrySend(address);
+			PingReply? reply = this.TrySend(address);
 			roundtripTime = TimeSpan.FromMilliseconds(reply?.RoundtripTime ?? 0);
-			bool? result = reply != null ? reply.Status == IPStatus.Success : (bool?)null;
+			bool? result = reply != null ? reply.Status == IPStatus.Success : null;
 			return result;
 		}
 
@@ -82,9 +82,9 @@ namespace WirePeep
 
 		#region Private Methods
 
-		private PingReply TrySend(IPAddress address)
+		private PingReply? TrySend(IPAddress address)
 		{
-			PingReply result = null;
+			PingReply? result = null;
 			try
 			{
 				result = this.ping.Send(address, this.waitMilliseconds, BufferContent, this.options);
@@ -103,7 +103,7 @@ namespace WirePeep
 				// Technically, we could call NetworkInterface.GetIsNetworkAvailable() to check if
 				// Windows networking is available yet. But that polls all adapters to see if any are up.
 				// For efficiency, we might as well just use the exception state to indicate "Unavailable".
-				IDictionary<string, object> context = null;
+				IDictionary<string, object>? context = null;
 				if (ex.InnerException is Win32Exception win32)
 				{
 					context = new Dictionary<string, object> { { "Win32 Error", win32.NativeErrorCode } };

@@ -21,7 +21,7 @@ namespace WirePeep
 	{
 		#region Constructors
 
-		public Profile(ISettingsNode settingsNode)
+		public Profile(ISettingsNode? settingsNode)
 		{
 			if (settingsNode != null)
 			{
@@ -51,17 +51,17 @@ namespace WirePeep
 		public void Save(ISettingsNode settingsNode)
 		{
 			settingsNode.DeleteSubNode(nameof(this.PeerGroups));
-			ISettingsNode peerGroupsNode = settingsNode.GetSubNode(nameof(this.PeerGroups), true);
+			ISettingsNode peerGroupsNode = settingsNode.GetSubNode(nameof(this.PeerGroups));
 			foreach (PeerGroup peerGroup in this.PeerGroups)
 			{
-				peerGroup.Save(peerGroupsNode.GetSubNode(peerGroup.Id.ToString(), true));
+				peerGroup.Save(peerGroupsNode.GetSubNode(peerGroup.Id.ToString()));
 			}
 
 			settingsNode.DeleteSubNode(nameof(this.Locations));
-			ISettingsNode locationsNode = settingsNode.GetSubNode(nameof(this.Locations), true);
+			ISettingsNode locationsNode = settingsNode.GetSubNode(nameof(this.Locations));
 			foreach (Location location in this.Locations)
 			{
-				location.Save(locationsNode.GetSubNode(location.Id.ToString(), true));
+				location.Save(locationsNode.GetSubNode(location.Id.ToString()));
 			}
 		}
 
@@ -78,13 +78,13 @@ namespace WirePeep
 
 		private void Load(ISettingsNode settingsNode)
 		{
-			ISettingsNode peerGroupsNode = settingsNode.GetSubNode(nameof(this.PeerGroups), false);
+			ISettingsNode? peerGroupsNode = settingsNode.TryGetSubNode(nameof(this.PeerGroups));
 			if (peerGroupsNode != null)
 			{
 				foreach (string subNodeName in peerGroupsNode.GetSubNodeNames())
 				{
-					ISettingsNode peerGroupNode = peerGroupsNode.GetSubNode(subNodeName, false);
-					PeerGroup peerGroup = PeerGroup.TryLoad(peerGroupNode);
+					ISettingsNode? peerGroupNode = peerGroupsNode.TryGetSubNode(subNodeName);
+					PeerGroup? peerGroup = PeerGroup.TryLoad(peerGroupNode);
 					if (peerGroup != null)
 					{
 						this.PeerGroups.Add(peerGroup);
@@ -93,13 +93,13 @@ namespace WirePeep
 			}
 
 			Dictionary<Guid, PeerGroup> idToGroupMap = this.PeerGroups.ToDictionary(group => group.Id);
-			ISettingsNode locationsNode = settingsNode.GetSubNode(nameof(this.Locations), false);
+			ISettingsNode? locationsNode = settingsNode.TryGetSubNode(nameof(this.Locations));
 			if (locationsNode != null)
 			{
 				foreach (string subNodeName in locationsNode.GetSubNodeNames())
 				{
-					ISettingsNode locationNode = locationsNode.GetSubNode(subNodeName, false);
-					Location location = Location.TryLoad(locationNode, idToGroupMap);
+					ISettingsNode? locationNode = locationsNode.TryGetSubNode(subNodeName);
+					Location? location = Location.TryLoad(locationNode, idToGroupMap);
 					if (location != null)
 					{
 						this.Locations.Add(location);
@@ -134,7 +134,7 @@ namespace WirePeep
 				int waitMilliseconds = groupElement.GetAttributeValue("WaitMilliseconds", 200);
 #pragma warning restore MEN010 // Avoid magic numbers
 
-				PeerGroup group = new PeerGroup(
+				PeerGroup group = new(
 					groupName,
 					TimeSpan.FromSeconds(failSeconds),
 					TimeSpan.FromSeconds(pollSeconds),
@@ -146,10 +146,10 @@ namespace WirePeep
 					int ordinal = 1;
 					foreach (XElement addressElement in locationElement.Elements("Address"))
 					{
-						if (IPAddress.TryParse(addressElement.Value, out IPAddress address))
+						if (IPAddress.TryParse(addressElement.Value, out IPAddress? address))
 						{
 							string nameSuffix = ordinal == 1 ? string.Empty : $" #{ordinal}";
-							Location location = new Location(group, locationName + nameSuffix, address);
+							Location location = new(group, locationName + nameSuffix, address);
 							AddLocation(location);
 							ordinal++;
 						}
@@ -160,7 +160,7 @@ namespace WirePeep
 				{
 					string findName = findElement.GetAttributeValue("Name");
 					string findType = findElement.GetAttributeValue("Type");
-					IPAddress address;
+					IPAddress? address;
 					switch (findType)
 					{
 						case "DefaultGateway":
@@ -170,7 +170,7 @@ namespace WirePeep
 							break;
 
 						case "CableModem":
-							using (Pinger pinger = new Pinger(group.Wait))
+							using (Pinger pinger = new(group.Wait))
 							{
 								address = findElement.Elements("Address").Select(e => IPAddress.Parse(e.Value)).FirstOrDefault(a => pinger.TryPing(a) ?? false);
 							}
@@ -183,7 +183,7 @@ namespace WirePeep
 
 					if (address != null)
 					{
-						Location location = new Location(group, findName, address);
+						Location location = new(group, findName, address);
 						AddLocation(location);
 					}
 				}
@@ -194,15 +194,15 @@ namespace WirePeep
 
 		#region Private Event Handlers
 
-		private void PeerGroupsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+		private void PeerGroupsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
 		{
-			List<Location> toRemove = null;
+			List<Location>? toRemove = null;
 
 			switch (e.Action)
 			{
 				case NotifyCollectionChangedAction.Remove:
 					// Remove any locations using the removed peer groups. The UI should prevent this from occurring.
-					IEnumerable<PeerGroup> oldItems = e.OldItems.Cast<PeerGroup>();
+					IEnumerable<PeerGroup> oldItems = e.OldItems?.Cast<PeerGroup>() ?? Enumerable.Empty<PeerGroup>();
 					toRemove = new List<Location>();
 					foreach (Location location in this.Locations.Where(l => oldItems.Any(g => g == l.PeerGroup)))
 					{
@@ -213,14 +213,14 @@ namespace WirePeep
 
 				case NotifyCollectionChangedAction.Replace:
 					// Replace any locations that are using the replaced peer groups.
-					oldItems = e.OldItems.Cast<PeerGroup>();
-					IEnumerable<PeerGroup> newItems = e.NewItems.Cast<PeerGroup>();
+					oldItems = e.OldItems?.Cast<PeerGroup>() ?? Enumerable.Empty<PeerGroup>();
+					IEnumerable<PeerGroup> newItems = e.NewItems?.Cast<PeerGroup>() ?? Enumerable.Empty<PeerGroup>();
 					var pairs = oldItems.Zip(newItems, (o, n) => Tuple.Create(o, n)).ToArray();
 					int numLocations = this.Locations.Count;
 					for (int i = 0; i < numLocations; i++)
 					{
 						Location currentLocation = this.Locations[i];
-						PeerGroup replacement = pairs.FirstOrDefault(p => p.Item1 == currentLocation.PeerGroup)?.Item2;
+						PeerGroup? replacement = pairs.FirstOrDefault(p => p.Item1 == currentLocation.PeerGroup)?.Item2;
 						if (replacement != null)
 						{
 							this.Locations[i] = new Location(replacement, currentLocation.Name, currentLocation.Address, currentLocation.Id);
@@ -237,7 +237,7 @@ namespace WirePeep
 					for (int i = 0; i < numLocations; i++)
 					{
 						Location currentLocation = this.Locations[i];
-						if (idToGroupMap.TryGetValue(currentLocation.PeerGroup.Id, out PeerGroup replacement))
+						if (idToGroupMap.TryGetValue(currentLocation.PeerGroup.Id, out PeerGroup? replacement))
 						{
 							this.Locations[i] = new Location(replacement, currentLocation.Name, currentLocation.Address, currentLocation.Id);
 						}

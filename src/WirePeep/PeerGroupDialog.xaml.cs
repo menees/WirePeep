@@ -24,7 +24,7 @@ namespace WirePeep
 	{
 		#region Private Data Members
 
-		private Profile profile;
+		private Profile? profile;
 
 		#endregion
 
@@ -51,11 +51,11 @@ namespace WirePeep
 			bool result = false;
 			if (this.ShowDialog() ?? false)
 			{
-				HashSet<PeerGroup> usedGroups = new HashSet<PeerGroup>();
+				HashSet<PeerGroup> usedGroups = new();
 				foreach (GridRow row in rows)
 				{
 					PeerGroup rowGroup = row.CreateGroup();
-					PeerGroup existingGroup = peerGroups.FirstOrDefault(g => g.Id == row.Id);
+					PeerGroup? existingGroup = peerGroups.FirstOrDefault(g => g.Id == row.Id);
 					if (existingGroup == null)
 					{
 						peerGroups.Add(rowGroup);
@@ -94,7 +94,7 @@ namespace WirePeep
 		private void GridPreviewCanExecute(object sender, CanExecuteRoutedEventArgs e)
 		{
 			// Idea came from https://stackoverflow.com/a/33187654/1882616.
-			if (e.Command == DataGrid.DeleteCommand)
+			if (e.Command == DataGrid.DeleteCommand && this.profile != null)
 			{
 				// The new/insert row is an internal "NamedObject" object not a GridRow.
 				if (this.grid.SelectedItem is GridRow row)
@@ -124,7 +124,7 @@ namespace WirePeep
 
 		private void OKClicked(object sender, RoutedEventArgs e)
 		{
-			List<string> errors = new List<string>();
+			List<string> errors = new();
 
 			ISet<ValidationError> validationErrors = WindowsUtility.GetValidationErrors(this.grid);
 			foreach (ValidationError error in validationErrors)
@@ -170,6 +170,7 @@ namespace WirePeep
 			public GridRow()
 			{
 				// This is used by the DataGrid via reflection.
+				this.name = string.Empty;
 				this.poll = DefaultPoll;
 				this.wait = DefaultWait;
 				this.fail = DefaultFail;
@@ -195,8 +196,8 @@ namespace WirePeep
 
 				set
 				{
-					string scrubbed = value?.Trim();
-					if (string.IsNullOrEmpty(scrubbed))
+					string? scrubbed = value?.Trim();
+					if (scrubbed.IsEmpty())
 					{
 						throw new FormatException("Please enter a peer group name.");
 					}

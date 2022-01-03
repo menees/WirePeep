@@ -14,12 +14,12 @@ namespace WirePeep
 	{
 		#region Private Data Members
 
-		private string peerGroupName;
+		private string peerGroupName = string.Empty;
 		private DateTime failStarted;
 		private TimeSpan length;
 		private DateTime? failEnded;
 		private TimeSpan? sincePrevious;
-		private string comment;
+		private string comment = string.Empty;
 		private bool isActive;
 		private bool isSelected;
 		private Guid peerGroupId;
@@ -85,13 +85,13 @@ namespace WirePeep
 
 		#region Public Methods
 
-		public void Update(PeerGroupState peerGroupState, LogRow previousLogRow = null)
+		public void Update(PeerGroupState peerGroupState, LogRow? previousLogRow = null)
 		{
 			PeerGroup peerGroup = peerGroupState.PeerGroup;
 			this.PeerGroupName = peerGroup.Name;
 			this.PeerGroupId = peerGroup.Id;
 
-			if (this.FailStarted == DateTime.MinValue)
+			if (this.FailStarted == DateTime.MinValue && peerGroupState.IsFailedChanged != null)
 			{
 				this.FailStarted = peerGroupState.IsFailedChanged.Value;
 				this.IsActive = true;

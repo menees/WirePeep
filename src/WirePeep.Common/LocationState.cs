@@ -51,7 +51,7 @@ namespace WirePeep
 			{
 				ConnectionState priorConnection = this.Connection;
 
-				using (Pinger pinger = new Pinger(peerGroup.Wait))
+				using (Pinger pinger = new(peerGroup.Wait))
 				{
 					TimeSpan roundtripTime = TimeSpan.Zero;
 					if (simulateConnection != null)

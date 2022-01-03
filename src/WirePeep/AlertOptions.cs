@@ -22,7 +22,7 @@ namespace WirePeep
 	{
 		#region Constructors
 
-		public AlertOptions(bool isFailure, string defaultSoundFileName, ISettingsNode settingsNode)
+		public AlertOptions(bool isFailure, string defaultSoundFileName, ISettingsNode? settingsNode)
 		{
 			this.IsFailure = isFailure;
 			this.SoundFileName = defaultSoundFileName;
@@ -61,9 +61,9 @@ namespace WirePeep
 
 		#region Public Methods
 
-		public static void PlaySoundFile(string soundFileName, ref MediaPlayer mediaPlayer)
+		public static void PlaySoundFile(string? soundFileName, ref MediaPlayer? mediaPlayer)
 		{
-			if (!string.IsNullOrEmpty(soundFileName))
+			if (soundFileName.IsNotEmpty())
 			{
 				string filePath = Environment.ExpandEnvironmentVariables(soundFileName);
 				if (File.Exists(filePath))
@@ -94,7 +94,7 @@ namespace WirePeep
 			Window window,
 			string notificationMessage,
 			NotifyIcon notifyIcon,
-			ref MediaPlayer mediaPlayer)
+			ref MediaPlayer? mediaPlayer)
 		{
 			if (window != null)
 			{

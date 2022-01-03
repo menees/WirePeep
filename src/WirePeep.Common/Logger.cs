@@ -22,17 +22,17 @@ namespace WirePeep
 		private const string LengthColumn = "Length";
 		private const string PeerGroupColumn = nameof(PeerGroup);
 
-		private readonly HashSet<Entry> headers = new HashSet<Entry>();
-		private StreamWriter writer;
+		private readonly HashSet<Entry> headers = new();
+		private StreamWriter? writer;
 		private int batchDepth;
 
 		#endregion
 
 		#region Constructors
 
-		public Logger(string fileName, bool isSimple)
+		public Logger(string? fileName, bool isSimple)
 		{
-			this.FileName = fileName;
+			this.FileName = fileName ?? string.Empty;
 			this.IsSimple = isSimple;
 		}
 
@@ -69,7 +69,7 @@ namespace WirePeep
 			{
 				this.TryAddHeader(
 					Entry.Simple, PeerGroupColumn, "LocalStart", LengthColumn, "LocalEnd", SincePreviousColumn, CommentColumn, "UtcStart", "UtcEnd");
-				TimeSpan? length = endedUtc != null ? ConvertUtility.RoundToSeconds(endedUtc.Value - startedUtc) : (TimeSpan?)null;
+				TimeSpan? length = endedUtc != null ? ConvertUtility.RoundToSeconds(endedUtc.Value - startedUtc) : null;
 				this.AddValues(peerGroupName, startedUtc.ToLocalTime(), length, endedUtc?.ToLocalTime(), sincePrevious, comment, startedUtc, endedUtc);
 			}
 		}
@@ -166,7 +166,7 @@ namespace WirePeep
 			{
 				if (!this.IsSimple)
 				{
-					List<string> values = new List<string>(headerValues.Length);
+					List<string> values = new(headerValues.Length);
 					values.Add("//" + entry);
 					values.AddRange(headerValues);
 					headerValues = values.ToArray();
@@ -176,7 +176,7 @@ namespace WirePeep
 			}
 		}
 
-		private void AddValues(params object[] values)
+		private void AddValues(params object?[] values)
 		{
 			// this.writer can be null if no log file name was provided (e.g., no log folder is configured).
 			if (this.writer != null)

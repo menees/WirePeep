@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,7 +18,7 @@ namespace WirePeep
 		#region Private Data Members
 
 		private readonly Profile profile;
-		private readonly object mapLock = new object();
+		private readonly object mapLock = new();
 		private Dictionary<PeerGroupState, List<LocationState>> peerGroupToLocationsMap;
 
 		#endregion
@@ -33,6 +34,9 @@ namespace WirePeep
 			this.profile.PeerGroups.CollectionChanged += this.PeerGroupsCollectionChanged;
 
 			this.UpdatePeerGroups(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+
+			// UpdateLocations sets this.peerGroupToLocationsMap, but the compiler complains if we don't assign to it in the constructor.
+			this.peerGroupToLocationsMap = null!;
 			this.UpdateLocations(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
 		}
 
@@ -63,10 +67,10 @@ namespace WirePeep
 			}
 
 			DateTime utcNow = DateTime.UtcNow;
-			ParallelOptions options = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount / 2 };
+			ParallelOptions options = new() { MaxDegreeOfParallelism = Environment.ProcessorCount / 2 };
 			Parallel.ForEach(mapCopy, options, pair => pair.Key.Update(utcNow, pair.Value, simulateConnection));
 
-			StateSnapshot result = new StateSnapshot(utcNow, mapCopy.Count);
+			StateSnapshot result = new(utcNow, mapCopy.Count);
 			foreach (var pair in mapCopy)
 			{
 				PeerGroupState managedPeerGroup = pair.Key;
@@ -86,7 +90,7 @@ namespace WirePeep
 
 		#region Private Methods
 
-		private bool FindPeerGroupState(PeerGroup peerGroup, out PeerGroupState state)
+		private bool FindPeerGroupState(PeerGroup peerGroup, [MaybeNullWhen(false)] out PeerGroupState state)
 		{
 			state = this.PeerGroups.FirstOrDefault(s => s.PeerGroup == peerGroup);
 			return state != null;
@@ -94,7 +98,7 @@ namespace WirePeep
 
 		private PeerGroupState GetPeerGroupState(PeerGroup peerGroup, bool allowAdd = true)
 		{
-			if (!this.FindPeerGroupState(peerGroup, out PeerGroupState result))
+			if (!this.FindPeerGroupState(peerGroup, out PeerGroupState? result))
 			{
 				result = new PeerGroupState(peerGroup);
 				if (allowAdd)
@@ -111,7 +115,7 @@ namespace WirePeep
 			switch (e.Action)
 			{
 				case NotifyCollectionChangedAction.Add:
-					foreach (PeerGroup peerGroup in e.NewItems)
+					foreach (PeerGroup peerGroup in e.NewItems!)
 					{
 						this.GetPeerGroupState(peerGroup);
 					}
@@ -119,9 +123,9 @@ namespace WirePeep
 					break;
 
 				case NotifyCollectionChangedAction.Remove:
-					foreach (PeerGroup peerGroup in e.OldItems)
+					foreach (PeerGroup peerGroup in e.OldItems!)
 					{
-						if (this.FindPeerGroupState(peerGroup, out PeerGroupState state))
+						if (this.FindPeerGroupState(peerGroup, out PeerGroupState? state))
 						{
 							this.PeerGroups.Remove(state);
 						}
@@ -130,9 +134,9 @@ namespace WirePeep
 					break;
 
 				case NotifyCollectionChangedAction.Replace:
-					foreach (var pair in e.OldItems.Cast<PeerGroup>().Zip(e.NewItems.Cast<PeerGroup>(), (o, n) => Tuple.Create(o, n)))
+					foreach (var pair in e.OldItems!.Cast<PeerGroup>().Zip(e.NewItems!.Cast<PeerGroup>(), (o, n) => Tuple.Create(o, n)))
 					{
-						if (this.FindPeerGroupState(pair.Item1, out PeerGroupState oldState))
+						if (this.FindPeerGroupState(pair.Item1, out PeerGroupState? oldState))
 						{
 							PeerGroupState newState = this.GetPeerGroupState(pair.Item2, allowAdd: false);
 							int index = this.PeerGroups.IndexOf(oldState);
@@ -166,7 +170,7 @@ namespace WirePeep
 
 		private void UpdateLocations(NotifyCollectionChangedEventArgs e)
 		{
-			bool FindLocationState(Location location, out LocationState state)
+			bool FindLocationState(Location location, [MaybeNullWhen(false)] out LocationState state)
 			{
 				state = this.Locations.FirstOrDefault(l => l.Location == location);
 				return state != null;
@@ -174,7 +178,7 @@ namespace WirePeep
 
 			LocationState GetLocationState(Location location, bool allowAdd = true)
 			{
-				if (!FindLocationState(location, out LocationState result))
+				if (!FindLocationState(location, out LocationState? result) || result == null)
 				{
 					this.GetPeerGroupState(location.PeerGroup);
 
@@ -191,7 +195,7 @@ namespace WirePeep
 			switch (e.Action)
 			{
 				case NotifyCollectionChangedAction.Add:
-					foreach (Location location in e.NewItems)
+					foreach (Location location in e.NewItems!)
 					{
 						GetLocationState(location);
 					}
@@ -199,9 +203,9 @@ namespace WirePeep
 					break;
 
 				case NotifyCollectionChangedAction.Remove:
-					foreach (Location location in e.OldItems)
+					foreach (Location location in e.OldItems!)
 					{
-						if (FindLocationState(location, out LocationState state))
+						if (FindLocationState(location, out LocationState? state))
 						{
 							this.Locations.Remove(state);
 						}
@@ -210,9 +214,9 @@ namespace WirePeep
 					break;
 
 				case NotifyCollectionChangedAction.Replace:
-					foreach (var pair in e.OldItems.Cast<Location>().Zip(e.NewItems.Cast<Location>(), (o, n) => Tuple.Create(o, n)))
+					foreach (var pair in e.OldItems!.Cast<Location>().Zip(e.NewItems!.Cast<Location>(), (o, n) => Tuple.Create(o, n)))
 					{
-						if (FindLocationState(pair.Item1, out LocationState oldState))
+						if (FindLocationState(pair.Item1, out LocationState? oldState))
 						{
 							LocationState newState = GetLocationState(pair.Item2, allowAdd: false);
 							int index = this.Locations.IndexOf(oldState);
@@ -255,9 +259,9 @@ namespace WirePeep
 
 		#region Private Event Handlers
 
-		private void PeerGroupsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e) => this.UpdatePeerGroups(e);
+		private void PeerGroupsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e) => this.UpdatePeerGroups(e);
 
-		private void LocationsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e) => this.UpdateLocations(e);
+		private void LocationsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e) => this.UpdateLocations(e);
 
 		#endregion
 	}

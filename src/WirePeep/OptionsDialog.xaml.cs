@@ -24,7 +24,7 @@ namespace WirePeep
 	{
 		#region Private Data Members
 
-		private MediaPlayer mediaPlayer;
+		private MediaPlayer? mediaPlayer;
 
 		#endregion
 
@@ -83,13 +83,13 @@ namespace WirePeep
 				appOptions.FailureOptions.ShowNotification = this.showNotificationOnFailure.IsChecked ?? false;
 				appOptions.FailureOptions.ColorInactiveTaskbarItem = this.colorTaskbarOnFailure.IsChecked ?? false;
 				appOptions.FailureOptions.PlaySound = this.playSoundOnFailure.IsChecked ?? false;
-				appOptions.FailureOptions.SoundFileName = this.soundOnFailure.ToolTip?.ToString();
+				appOptions.FailureOptions.SoundFileName = this.soundOnFailure.ToolTip?.ToString() ?? string.Empty;
 
 				appOptions.ReconnectOptions.ShowWindow = this.showWindowOnReconnect.IsChecked ?? false;
 				appOptions.ReconnectOptions.ShowNotification = this.showNotificationOnReconnect.IsChecked ?? false;
 				appOptions.ReconnectOptions.ColorInactiveTaskbarItem = this.colorTaskbarOnReconnect.IsChecked ?? false;
 				appOptions.ReconnectOptions.PlaySound = this.playSoundOnReconnect.IsChecked ?? false;
-				appOptions.ReconnectOptions.SoundFileName = this.soundOnReconnect.ToolTip?.ToString();
+				appOptions.ReconnectOptions.SoundFileName = this.soundOnReconnect.ToolTip?.ToString() ?? string.Empty;
 
 				appOptions.CommonOptions.LogFileNameFormat = (LogFileNameFormat)this.logFileNameFormat.SelectedIndex;
 				appOptions.CommonOptions.LogFolder = this.LogFolder;
@@ -105,7 +105,7 @@ namespace WirePeep
 
 		private void SelectSoundFile(string title, FrameworkElement element)
 		{
-			OpenFileDialog dialog = new OpenFileDialog
+			OpenFileDialog dialog = new()
 			{
 				Filter = "Sound files (*.mp3;*.wav)|*.mp3;*.wav|All files (*.*)|*.*",
 				FileName = Environment.ExpandEnvironmentVariables(element.ToolTip?.ToString() ?? string.Empty),
@@ -115,8 +115,11 @@ namespace WirePeep
 			if (dialog.ShowDialog(this) ?? false)
 			{
 				// Change C:\Windows references to the SystemRoot environment variable to make settings files more portable.
-				string systemRoot = Environment.GetEnvironmentVariable("SystemRoot");
-				element.ToolTip = TextUtility.Replace(dialog.FileName, systemRoot, "%SystemRoot%", StringComparison.OrdinalIgnoreCase);
+				string? systemRoot = Environment.GetEnvironmentVariable("SystemRoot");
+				if (systemRoot.IsNotEmpty())
+				{
+					element.ToolTip = TextUtility.Replace(dialog.FileName, systemRoot, "%SystemRoot%", StringComparison.OrdinalIgnoreCase);
+				}
 			}
 		}
 
@@ -131,7 +134,7 @@ namespace WirePeep
 
 		private void OKClicked(object sender, RoutedEventArgs e)
 		{
-			List<string> errors = new List<string>();
+			List<string> errors = new();
 
 			string folder = this.LogFolder;
 			if (!string.IsNullOrEmpty(folder) && !Directory.Exists(folder))
@@ -151,8 +154,8 @@ namespace WirePeep
 
 		private void SelectLogFolderClicked(object sender, RoutedEventArgs e)
 		{
-			string folder = WindowsUtility.SelectFolder(this, "Select Log Folder", this.LogFolder);
-			if (!string.IsNullOrEmpty(folder))
+			string? folder = WindowsUtility.SelectFolder(this, "Select Log Folder", this.LogFolder);
+			if (folder.IsNotEmpty())
 			{
 				this.logFolder.Text = folder;
 			}

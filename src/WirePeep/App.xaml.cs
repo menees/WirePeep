@@ -21,8 +21,8 @@ namespace WirePeep
 	{
 		#region Private Data Members
 
-		private Mutex singleInstanceMutex;
-		private MainWindow mainWindow;
+		private Mutex? singleInstanceMutex;
+		private MainWindow? mainWindow;
 
 		#endregion
 
@@ -60,8 +60,10 @@ namespace WirePeep
 			{
 				base.OnStartup(e);
 
-				this.mainWindow = new MainWindow();
-				this.mainWindow.StartMinimized = e.Args.Any(arg => arg.Equals("/Minimize", StringComparison.OrdinalIgnoreCase));
+				this.mainWindow = new MainWindow
+				{
+					StartMinimized = e.Args.Any(arg => arg.Equals("/Minimize", StringComparison.OrdinalIgnoreCase)),
+				};
 
 				AppOptions appOptions = this.mainWindow.LoadNonWindowSettings();
 				if (this.mainWindow.StartMinimized)
@@ -97,7 +99,11 @@ namespace WirePeep
 
 		protected override void OnSessionEnding(SessionEndingCancelEventArgs e)
 		{
-			this.mainWindow.IsSessionEnding = true;
+			if (this.mainWindow != null)
+			{
+				this.mainWindow.IsSessionEnding = true;
+			}
+
 			base.OnSessionEnding(e);
 		}
 

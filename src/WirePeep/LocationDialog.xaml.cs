@@ -33,7 +33,7 @@ namespace WirePeep
 
 		#region Public Methods
 
-		public bool Execute(Window owner, IReadOnlyList<PeerGroup> peerGroups, ref Location location)
+		public bool Execute(Window owner, IReadOnlyList<PeerGroup> peerGroups, ref Location? location)
 		{
 			this.Owner = owner;
 
@@ -53,8 +53,8 @@ namespace WirePeep
 			bool result = false;
 			if (this.ShowDialog() ?? false)
 			{
-				List<string> errors = new List<string>();
-				Location newLocation = this.TryGetLocation(errors, location?.Id);
+				List<string> errors = new();
+				Location? newLocation = this.TryGetLocation(errors, location?.Id);
 				if (newLocation != null
 					&& errors.Count == 0
 					&& (location == null
@@ -74,19 +74,19 @@ namespace WirePeep
 
 		#region Private Methods
 
-		private Location TryGetLocation(IList<string> errors, Guid? id = null)
+		private Location? TryGetLocation(IList<string> errors, Guid? id = null)
 		{
 			string name = this.GetName(errors);
 
-			IPAddress address = this.GetAddress(errors);
+			IPAddress? address = this.GetAddress(errors);
 
-			PeerGroup peerGroup = this.peerGroups.SelectedItem as PeerGroup;
+			PeerGroup? peerGroup = this.peerGroups.SelectedItem as PeerGroup;
 			if (peerGroup == null)
 			{
 				errors.Add("A peer group must be selected.");
 			}
 
-			Location result = errors.Count == 0 ? new Location(peerGroup, name, address, id) : null;
+			Location? result = errors.Count == 0 && peerGroup != null && address != null ? new Location(peerGroup, name, address, id) : null;
 			return result;
 		}
 
@@ -101,9 +101,9 @@ namespace WirePeep
 			return name;
 		}
 
-		private IPAddress GetAddress(IList<string> errors)
+		private IPAddress? GetAddress(IList<string> errors)
 		{
-			if (!IPAddress.TryParse(this.address.Text.Trim(), out IPAddress address))
+			if (!IPAddress.TryParse(this.address.Text.Trim(), out IPAddress? address))
 			{
 				errors.Add("The address must be a valid IPv4 or IPv6 address.");
 			}
@@ -130,9 +130,9 @@ namespace WirePeep
 
 		private void OKClicked(object sender, RoutedEventArgs e)
 		{
-			List<string> errors = new List<string>();
+			List<string> errors = new();
 
-			Location location;
+			Location? location;
 			using (new WaitCursor())
 			{
 				location = this.TryGetLocation(errors);
@@ -142,11 +142,11 @@ namespace WirePeep
 				}
 			}
 
-			if (this.IsValid(errors))
+			if (this.IsValid(errors) && location != null)
 			{
 				bool pingOk = true;
 				const int WaitMilliseconds = 200;
-				using (Pinger pinger = new Pinger(TimeSpan.FromMilliseconds(WaitMilliseconds)))
+				using (Pinger pinger = new(TimeSpan.FromMilliseconds(WaitMilliseconds)))
 				{
 					if (!(pinger.TryPing(location.Address) ?? false))
 					{
@@ -165,12 +165,12 @@ namespace WirePeep
 
 		private void LookupAddressClicked(object sender, RoutedEventArgs e)
 		{
-			List<string> errors = new List<string>();
+			List<string> errors = new();
 			string name = this.GetName(errors);
 
 			if (this.IsValid(errors))
 			{
-				IPAddress[] addresses = null;
+				IPAddress[]? addresses = null;
 				try
 				{
 					using (new WaitCursor())
@@ -183,7 +183,7 @@ namespace WirePeep
 					errors.Add(ex.Message);
 				}
 
-				if (this.IsValid(errors))
+				if (this.IsValid(errors) && addresses != null)
 				{
 					// Prefer IPv4 addresses over IPv6.
 					IPAddress preferred = addresses.OrderBy(address => address.AddressFamily).First();
@@ -194,12 +194,12 @@ namespace WirePeep
 
 		private void LookupNameClicked(object sender, RoutedEventArgs e)
 		{
-			List<string> errors = new List<string>();
-			IPAddress address = this.GetAddress(errors);
+			List<string> errors = new();
+			IPAddress? address = this.GetAddress(errors);
 
-			if (this.IsValid(errors))
+			if (this.IsValid(errors) && address != null)
 			{
-				IPHostEntry entry = null;
+				IPHostEntry? entry = null;
 				try
 				{
 					using (new WaitCursor())
@@ -212,7 +212,7 @@ namespace WirePeep
 					errors.Add(ex.Message);
 				}
 
-				if (this.IsValid(errors))
+				if (this.IsValid(errors) && entry != null)
 				{
 					this.name.Text = entry.HostName;
 				}

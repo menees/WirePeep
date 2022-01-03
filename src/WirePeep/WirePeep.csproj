@@ -2,7 +2,6 @@
 
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
-		<TargetFrameworks>netcoreapp3.1;net45</TargetFrameworks>
 		<UseWPF>true</UseWPF>
 		<UseWindowsForms>true</UseWindowsForms>
 		<Description>Free, open-source network downtime monitor</Description>
@@ -10,7 +9,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Menees.Windows.Presentation" Version="4.9.10" />
+		<PackageReference Include="Menees.Windows.Presentation" Version="5.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>

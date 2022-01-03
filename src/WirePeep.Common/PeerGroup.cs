@@ -70,20 +70,17 @@ namespace WirePeep
 
 		#region Internal Methods
 
-		internal static PeerGroup TryLoad(ISettingsNode settingsNode)
+		internal static PeerGroup? TryLoad(ISettingsNode? settingsNode)
 		{
-			PeerGroup result = null;
+			PeerGroup? result = null;
 
 			if (settingsNode != null && Guid.TryParse(settingsNode.NodeName, out Guid id))
 			{
-#pragma warning disable MEN010 // Avoid magic numbers. Default values are clear in context.
 				TimeSpan fail = settingsNode.GetValue(nameof(Fail), TimeSpan.FromSeconds(10));
 				TimeSpan poll = settingsNode.GetValue(nameof(Poll), TimeSpan.FromSeconds(5));
 				TimeSpan wait = settingsNode.GetValue(nameof(Wait), TimeSpan.FromMilliseconds(200));
-#pragma warning restore MEN010 // Avoid magic numbers
-
-				string name = settingsNode.GetValue(nameof(Name), null);
-				if (!string.IsNullOrEmpty(name))
+				string? name = settingsNode.GetValueN(nameof(Name), null);
+				if (name.IsNotEmpty())
 				{
 					result = new PeerGroup(name, fail, poll, wait, id);
 				}

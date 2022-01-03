@@ -53,19 +53,19 @@ namespace WirePeep
 
 		#region Internal Methods
 
-		internal static Location TryLoad(ISettingsNode settingsNode, IReadOnlyDictionary<Guid, PeerGroup> idToGroupMap)
+		internal static Location? TryLoad(ISettingsNode? settingsNode, IReadOnlyDictionary<Guid, PeerGroup> idToGroupMap)
 		{
-			Location result = null;
+			Location? result = null;
 
 			if (settingsNode != null && Guid.TryParse(settingsNode.NodeName, out Guid id))
 			{
 				Guid peerGroupId = settingsNode.GetValue("PeerGroupId", Guid.Empty);
-				string name = settingsNode.GetValue(nameof(Name), null);
-				string addressText = settingsNode.GetValue(nameof(Address), null);
+				string? name = settingsNode.GetValueN(nameof(Name), null);
+				string? addressText = settingsNode.GetValueN(nameof(Address), null);
 
-				if (IPAddress.TryParse(addressText, out IPAddress address)
-					&& !string.IsNullOrEmpty(name)
-					&& idToGroupMap.TryGetValue(peerGroupId, out PeerGroup peerGroup))
+				if (IPAddress.TryParse(addressText, out IPAddress? address)
+					&& name.IsNotEmpty()
+					&& idToGroupMap.TryGetValue(peerGroupId, out PeerGroup? peerGroup))
 				{
 					result = new Location(peerGroup, name, address, id);
 				}

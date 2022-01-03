@@ -40,17 +40,17 @@ namespace WirePeep
 		private readonly Dictionary<Guid, LogRow> failedPeerGroupToLogRowMap;
 		private readonly W.NotifyIcon notifyIcon;
 
-		private AppOptions appOptions;
-		private Profile profile;
-		private StateManager stateManager;
-		private Timer backgroundTimer;
+		private AppOptions? appOptions;
+		private Profile? profile;
+		private StateManager? stateManager;
+		private Timer? backgroundTimer;
 		private int updatingLock;
 		private bool closing;
 		private ConnectionState? simulateConnection;
-		private DataGrid selectedGrid;
-		private Logger logger;
+		private DataGrid? selectedGrid;
+		private Logger? logger;
 		private int failureId;
-		private MediaPlayer mediaPlayer;
+		private MediaPlayer? mediaPlayer;
 
 		#endregion
 
@@ -104,9 +104,9 @@ namespace WirePeep
 
 		private LogRow SelectedLogRow => (LogRow)this.logGrid.SelectedItem;
 
-		private StatusRow SelectedStatusRow => (StatusRow)this.statusGrid.SelectedItem;
+		private StatusRow? SelectedStatusRow => (StatusRow?)this.statusGrid.SelectedItem;
 
-		private CommonOptions CommonOptions => this.appOptions?.CommonOptions;
+		private CommonOptions? CommonOptions => this.appOptions?.CommonOptions;
 
 		#endregion
 
@@ -116,7 +116,7 @@ namespace WirePeep
 		{
 			this.backgroundTimer?.Dispose();
 			this.notifyIcon?.Dispose();
-			this.notifyIcon.ContextMenuStrip?.Dispose();
+			this.notifyIcon?.ContextMenuStrip?.Dispose();
 		}
 
 		#endregion
@@ -128,11 +128,11 @@ namespace WirePeep
 			using (ISettingsStore store = ApplicationInfo.CreateUserSettingsStore())
 			{
 				ISettingsNode settings = store.RootNode;
-				this.appOptions = new AppOptions(settings.GetSubNode(nameof(AppOptions), false));
-				this.profile = new Profile(settings.GetSubNode(nameof(Profile), false));
+				this.appOptions = new AppOptions(settings.TryGetSubNode(nameof(AppOptions)));
+				this.profile = new Profile(settings.TryGetSubNode(nameof(Profile)));
 				this.stateManager = new StateManager(this.profile);
 
-				string logFileName = this.GenerateLogFileName();
+				string? logFileName = this.GenerateLogFileName();
 				this.OpenLogger(logFileName);
 				this.appOptions.Apply(this);
 
@@ -146,8 +146,8 @@ namespace WirePeep
 			using (ISettingsStore store = ApplicationInfo.CreateUserSettingsStore())
 			{
 				ISettingsNode settings = store.RootNode;
-				this.profile?.Save(settings.GetSubNode(nameof(Profile), true));
-				this.appOptions?.Save(settings.GetSubNode(nameof(AppOptions), true));
+				this.profile?.Save(settings.GetSubNode(nameof(Profile)));
+				this.appOptions?.Save(settings.GetSubNode(nameof(AppOptions)));
 				store.Save();
 			}
 		}
@@ -159,7 +159,7 @@ namespace WirePeep
 		private static void CopyToClipboard(DataGrid source, bool copyRow)
 		{
 			IList<DataGridCellInfo> copyCells = copyRow ? source.SelectedCells : new[] { source.CurrentCell };
-			StringBuilder sb = new StringBuilder();
+			StringBuilder sb = new();
 			foreach (DataGridCellInfo cell in copyCells)
 			{
 				if (sb.Length > 0)
@@ -185,14 +185,17 @@ namespace WirePeep
 			this.UpdateLogRows(states.AllPeerGroups);
 
 			// This isn't a dependency property, so we can't bind to it. We have to manually update it.
-			TimeSpan monitored = this.stateManager.Monitored;
-			monitored = ConvertUtility.RoundToSeconds(monitored);
-			this.monitoredTime.Text = monitored.ToString();
+			if (this.stateManager != null)
+			{
+				TimeSpan monitored = this.stateManager.Monitored;
+				monitored = ConvertUtility.RoundToSeconds(monitored);
+				this.monitoredTime.Text = monitored.ToString();
+			}
 		}
 
 		private void UpdateStatusRows(StateSnapshot states)
 		{
-			HashSet<Guid> currentLocations = new HashSet<Guid>(this.statusRowMap.Comparer);
+			HashSet<Guid> currentLocations = new(this.statusRowMap.Comparer);
 			foreach (var pair in states.AllPeerGroupLocations)
 			{
 				PeerGroupState peerGroupState = pair.Key;
@@ -201,7 +204,7 @@ namespace WirePeep
 					Guid locationId = locationState.Location.Id;
 					currentLocations.Add(locationId);
 
-					if (this.statusRowMap.TryGetValue(locationId, out StatusRow row))
+					if (this.statusRowMap.TryGetValue(locationId, out StatusRow? row))
 					{
 						row.Update(peerGroupState, locationState);
 					}
@@ -224,32 +227,32 @@ namespace WirePeep
 
 		private void UpdateLogRows(IEnumerable<PeerGroupState> peerGroupStates)
 		{
-			List<PeerGroupState> failedChanged = new List<PeerGroupState>(0);
+			List<PeerGroupState> failedChanged = new(0);
 
-			HashSet<Guid> currentPeerGroups = new HashSet<Guid>(this.failedPeerGroupToLogRowMap.Comparer);
+			HashSet<Guid> currentPeerGroups = new(this.failedPeerGroupToLogRowMap.Comparer);
 			foreach (PeerGroupState peerGroupState in peerGroupStates)
 			{
 				PeerGroup peerGroup = peerGroupState.PeerGroup;
 				Guid peerGroupId = peerGroup.Id;
 
-				if (this.failedPeerGroupToLogRowMap.TryGetValue(peerGroupId, out LogRow row))
+				if (this.failedPeerGroupToLogRowMap.TryGetValue(peerGroupId, out LogRow? row))
 				{
 					row.Update(peerGroupState);
 					if (!peerGroupState.IsFailed)
 					{
 						this.failedPeerGroupToLogRowMap.Remove(peerGroupId);
-						this.logger?.AddFailureEnd(row.PeerGroupName, row.FailEnded.Value, row.FailureId, ConvertUtility.RoundToSeconds(row.Length));
+						this.logger?.AddFailureEnd(row.PeerGroupName, row.FailEnded!.Value, row.FailureId, ConvertUtility.RoundToSeconds(row.Length));
 						failedChanged.Add(peerGroupState);
 					}
 				}
 				else if (peerGroupState.IsFailed)
 				{
-					LogRow previous = this.logRows.FirstOrDefault(r => r.PeerGroupId == peerGroupId);
+					LogRow? previous = this.logRows.FirstOrDefault(r => r.PeerGroupId == peerGroupId);
 					row = new LogRow(this.failureId++);
 					row.Update(peerGroupState, previous);
 					this.logRows.Insert(0, row);
 					this.failedPeerGroupToLogRowMap.Add(peerGroupId, row);
-					TimeSpan? sincePrevious = row.SincePrevious != null ? ConvertUtility.RoundToSeconds(row.SincePrevious.Value) : (TimeSpan?)null;
+					TimeSpan? sincePrevious = row.SincePrevious != null ? ConvertUtility.RoundToSeconds(row.SincePrevious.Value) : null;
 					this.logger?.AddFailureStart(row.PeerGroupName, row.FailStarted, row.FailureId, sincePrevious);
 					failedChanged.Add(peerGroupState);
 				}
@@ -264,9 +267,9 @@ namespace WirePeep
 
 			foreach (var group in failedChanged.GroupBy(g => g.IsFailed))
 			{
-				AlertOptions alertOptions = group.Key ? this.appOptions.FailureOptions : this.appOptions.ReconnectOptions;
+				AlertOptions? alertOptions = group.Key ? this.appOptions?.FailureOptions : this.appOptions?.ReconnectOptions;
 
-				StringBuilder sb = new StringBuilder("The following peer groups ");
+				StringBuilder sb = new("The following peer groups ");
 				sb.Append(group.Key ? "are no longer connected:" : "have reconnected:");
 				sb.AppendLine();
 				foreach (PeerGroupState peerGroupState in group)
@@ -274,20 +277,20 @@ namespace WirePeep
 					sb.AppendLine(peerGroupState.PeerGroup.Name);
 				}
 
-				alertOptions.Alert(this, sb.ToString(), this.notifyIcon, ref this.mediaPlayer);
+				alertOptions?.Alert(this, sb.ToString(), this.notifyIcon, ref this.mediaPlayer);
 			}
 		}
 
 		private void EditComment(LogRow logRow)
 		{
-			string comment = logRow.Comment;
-			StringBuilder sb = new StringBuilder();
+			string? comment = logRow.Comment;
+			StringBuilder sb = new();
 			sb.Append(string.IsNullOrEmpty(comment) ? "Add a" : "Edit the");
 			sb.Append(" comment for the \"").Append(logRow.PeerGroupName).Append("\" failure that started at ");
 			sb.Append(logRow.FailStarted).Append(':');
 
 			comment = WindowsUtility.ShowInputBox(this, sb.ToString(), null, comment);
-			if (comment != null)
+			if (comment != null && this.stateManager != null)
 			{
 				using (new WaitCursor())
 				{
@@ -299,18 +302,20 @@ namespace WirePeep
 			this.TryFocus(this.logGrid);
 		}
 
-		private void EditLocation(StatusRow statusRow)
+		private void EditLocation(StatusRow? statusRow)
 		{
+			Conditions.RequireReference(this.profile, nameof(this.profile));
+
 			ObservableCollection<PeerGroup> peerGroups = this.profile.PeerGroups;
 			if (peerGroups.Count > 0 || (this.EditPeerGroups() && peerGroups.Count > 0))
 			{
 				ObservableCollection<Location> locations = this.profile.Locations;
 
 				bool insert = statusRow == null;
-				Location location = insert ? null : locations.FirstOrDefault(l => l.Id == statusRow.LocationId);
+				Location? location = insert ? null : locations.FirstOrDefault(l => l.Id == statusRow!.LocationId);
 				int locationIndex = location == null ? -1 : locations.IndexOf(location);
 
-				LocationDialog dialog = new LocationDialog();
+				LocationDialog dialog = new();
 				if (dialog.Execute(this, peerGroups, ref location))
 				{
 					if (location != null && peerGroups.Contains(location.PeerGroup))
@@ -332,27 +337,27 @@ namespace WirePeep
 
 		private bool EditPeerGroups()
 		{
-			PeerGroupDialog dialog = new PeerGroupDialog();
-			bool result = dialog.Execute(this, this.profile);
+			PeerGroupDialog dialog = new();
+			bool result = this.profile != null && dialog.Execute(this, this.profile);
 			return result;
 		}
 
-		private string GenerateLogFileName()
+		private string? GenerateLogFileName()
 		{
-			DateTime started = this.stateManager.Started;
-			string result = this.CommonOptions.GetFullLogFileName(started);
+			DateTime started = this.stateManager?.Started ?? DateTime.UtcNow;
+			string? result = this.CommonOptions?.GetFullLogFileName(started);
 			return result;
 		}
 
-		private void OpenLogger(string logFileName)
+		private void OpenLogger(string? logFileName)
 		{
 			this.logger = new Logger(logFileName, false);
-			this.logger.AddLogStart(this.stateManager.Started);
+			this.logger.AddLogStart(this.stateManager?.Started ?? DateTime.UtcNow);
 		}
 
 		private void UpdateLogger()
 		{
-			string logFileName = this.GenerateLogFileName();
+			string? logFileName = this.GenerateLogFileName();
 			if (logFileName != this.logger?.FileName)
 			{
 				this.CloseLogger();
@@ -362,7 +367,7 @@ namespace WirePeep
 
 		private void CloseLogger()
 		{
-			if (this.logger != null)
+			if (this.logger != null && this.stateManager != null)
 			{
 				DateTime utcNow = this.stateManager.LastUpdated;
 				TimeSpan monitored = this.stateManager.Monitored;
@@ -394,14 +399,12 @@ namespace WirePeep
 
 		private W.NotifyIcon CreateNotifyIcon()
 		{
-			W.NotifyIcon notifyIcon = new W.NotifyIcon();
+			W.NotifyIcon notifyIcon = new();
 
-			W.ContextMenuStrip notifyIconMenu = new W.ContextMenuStrip();
-#pragma warning disable CC0022 // Should dispose object. The menu items are disposed by the ContextMenuStrip.
-			W.ToolStripMenuItem notifyIconViewMenu = new W.ToolStripMenuItem();
-			W.ToolStripSeparator notifyIconSeparator = new W.ToolStripSeparator();
-			W.ToolStripMenuItem notifyIconExitMenu = new W.ToolStripMenuItem();
-#pragma warning restore CC0022 // Should dispose object
+			W.ContextMenuStrip notifyIconMenu = new();
+			W.ToolStripMenuItem notifyIconViewMenu = new();
+			W.ToolStripSeparator notifyIconSeparator = new();
+			W.ToolStripMenuItem notifyIconExitMenu = new();
 			notifyIcon.ContextMenuStrip = notifyIconMenu;
 
 			notifyIcon.Icon = Properties.Resources.WirePeep;
@@ -439,17 +442,17 @@ namespace WirePeep
 
 		#region Private Event Handlers
 
-		private void WindowSaverLoadSettings(object sender, SettingsEventArgs e)
+		private void WindowSaverLoadSettings(object? sender, SettingsEventArgs e)
 		{
 			var settings = e.SettingsNode;
 
-			ISettingsNode splitterNode = settings.GetSubNode(nameof(GridSplitter), false);
+			ISettingsNode? splitterNode = settings.TryGetSubNode(nameof(GridSplitter));
 			if (splitterNode != null)
 			{
 				RowDefinition[] splitterTargetRows = this.SplitterTargetRows;
 				for (int i = 0; i < splitterTargetRows.Length; i++)
 				{
-					ISettingsNode rowNode = splitterNode.GetSubNode($"Row{i}", false);
+					ISettingsNode? rowNode = splitterNode.TryGetSubNode($"Row{i}");
 					if (rowNode != null)
 					{
 						double value = rowNode.GetValue(nameof(GridLength.Value), 1.0);
@@ -461,24 +464,24 @@ namespace WirePeep
 			}
 		}
 
-		private void WindowSaverSaveSettings(object sender, SettingsEventArgs e)
+		private void WindowSaverSaveSettings(object? sender, SettingsEventArgs e)
 		{
 			var settings = e.SettingsNode;
 
 			settings.DeleteSubNode(nameof(GridSplitter));
-			ISettingsNode splitterNode = settings.GetSubNode(nameof(GridSplitter), true);
+			ISettingsNode splitterNode = settings.GetSubNode(nameof(GridSplitter));
 			RowDefinition[] splitterTargetRows = this.SplitterTargetRows;
 			for (int i = 0; i < splitterTargetRows.Length; i++)
 			{
 				RowDefinition row = splitterTargetRows[i];
 				GridLength rowHeight = row.Height;
-				ISettingsNode rowNode = splitterNode.GetSubNode($"Row{i}", true);
+				ISettingsNode rowNode = splitterNode.GetSubNode($"Row{i}");
 				rowNode.SetValue(nameof(rowHeight.Value), rowHeight.Value);
 				rowNode.SetValue(nameof(rowHeight.GridUnitType), rowHeight.GridUnitType);
 			}
 		}
 
-		private void WindowClosing(object sender, CancelEventArgs e)
+		private void WindowClosing(object? sender, CancelEventArgs e)
 		{
 			if (!this.IsSessionEnding && (this.appOptions?.ConfirmClose ?? false) && !e.Cancel)
 			{
@@ -488,20 +491,20 @@ namespace WirePeep
 			if (!e.Cancel)
 			{
 				this.closing = true;
-				this.backgroundTimer.Dispose();
+				this.backgroundTimer?.Dispose();
 				this.CloseLogger();
 			}
 		}
 
-		private void ExitExecuted(object sender, ExecutedRoutedEventArgs e)
+		private void ExitExecuted(object? sender, ExecutedRoutedEventArgs e)
 		{
 			this.Close();
 		}
 
-		private void ViewOptionsExecuted(object sender, ExecutedRoutedEventArgs e)
+		private void ViewOptionsExecuted(object? sender, ExecutedRoutedEventArgs e)
 		{
-			OptionsDialog dialog = new OptionsDialog();
-			if (dialog.Execute(this, this.appOptions))
+			OptionsDialog dialog = new();
+			if (this.appOptions != null && dialog.Execute(this, this.appOptions))
 			{
 				this.SaveNonWindowSettings();
 				this.UpdateLogger();
@@ -509,29 +512,29 @@ namespace WirePeep
 			}
 		}
 
-		private void HelpExecuted(object sender, ExecutedRoutedEventArgs e)
+		private void HelpExecuted(object? sender, ExecutedRoutedEventArgs e)
 		{
 			WindowsUtility.ShellExecute(this, "http://www.wirepeep.com");
 		}
 
-		private void AddLocationExecuted(object sender, ExecutedRoutedEventArgs e)
+		private void AddLocationExecuted(object? sender, ExecutedRoutedEventArgs e)
 		{
 			this.EditLocation(null);
 		}
 
-		private void EditPeerGroupsExecuted(object sender, ExecutedRoutedEventArgs e)
+		private void EditPeerGroupsExecuted(object? sender, ExecutedRoutedEventArgs e)
 		{
 			this.EditPeerGroups();
 			this.TryFocus(this.statusGrid);
 		}
 
-		private void ExportLogCanExecute(object sender, CanExecuteRoutedEventArgs e) => e.CanExecute = this.logRows.Count > 0;
+		private void ExportLogCanExecute(object? sender, CanExecuteRoutedEventArgs e) => e.CanExecute = this.logRows.Count > 0;
 
-		private void ExportLogExecuted(object sender, ExecutedRoutedEventArgs e)
+		private void ExportLogExecuted(object? sender, ExecutedRoutedEventArgs e)
 		{
 			if (this.logRows.Count > 0)
 			{
-				SaveFileDialog dialog = new SaveFileDialog
+				SaveFileDialog dialog = new()
 				{
 					Filter = "CSV Files (*.csv)|*.csv|All Files (*.*)|*.*",
 					DefaultExt = ".csv",
@@ -540,7 +543,7 @@ namespace WirePeep
 
 				if (dialog.ShowDialog(this) ?? false)
 				{
-					Logger logger = new Logger(dialog.FileName, true);
+					Logger logger = new(dialog.FileName, true);
 
 					using (new WaitCursor())
 					using (logger.BeginBatch())
@@ -554,21 +557,21 @@ namespace WirePeep
 			}
 		}
 
-		private void AboutExecuted(object sender, ExecutedRoutedEventArgs e)
+		private void AboutExecuted(object? sender, ExecutedRoutedEventArgs e)
 		{
 			WindowsUtility.ShowAboutBox(this, typeof(MainWindow).Assembly);
 		}
 
-		private void SimulateConnectionExecuted(object sender, ExecutedRoutedEventArgs e)
+		private void SimulateConnectionExecuted(object? sender, ExecutedRoutedEventArgs e)
 		{
-			SimulateDialog dialog = new SimulateDialog();
+			SimulateDialog dialog = new();
 			dialog.Execute(this, ref this.simulateConnection);
 		}
 
-		private void BackgroundTimerCallback(object state)
+		private void BackgroundTimerCallback(object? state)
 		{
 			// Only let one Update run at a time. If the callback takes longer than 1 second, it will be invoked again from another thread.
-			if (!this.closing && Interlocked.CompareExchange(ref this.updatingLock, 1, 0) == 0)
+			if (!this.closing && this.stateManager != null && Interlocked.CompareExchange(ref this.updatingLock, 1, 0) == 0)
 			{
 				try
 				{
@@ -590,9 +593,9 @@ namespace WirePeep
 			}
 		}
 
-		private void EditItemCanExecute(object sender, CanExecuteRoutedEventArgs e) => e.CanExecute = this.SelectedGrid?.SelectedItem != null;
+		private void EditItemCanExecute(object? sender, CanExecuteRoutedEventArgs e) => e.CanExecute = this.SelectedGrid?.SelectedItem != null;
 
-		private void EditItemExecuted(object sender, ExecutedRoutedEventArgs e)
+		private void EditItemExecuted(object? sender, ExecutedRoutedEventArgs e)
 		{
 			if (this.SelectedGrid == this.logGrid)
 			{
@@ -604,19 +607,19 @@ namespace WirePeep
 			}
 		}
 
-		private void DeleteItemCanExecute(object sender, CanExecuteRoutedEventArgs e) => e.CanExecute = this.SelectedStatusRow != null;
+		private void DeleteItemCanExecute(object? sender, CanExecuteRoutedEventArgs e) => e.CanExecute = this.SelectedStatusRow != null;
 
-		private void DeleteItemExecuted(object sender, ExecutedRoutedEventArgs e)
+		private void DeleteItemExecuted(object? sender, ExecutedRoutedEventArgs e)
 		{
-			StatusRow statusRow = this.SelectedStatusRow;
-			if (statusRow != null)
+			StatusRow? statusRow = this.SelectedStatusRow;
+			if (statusRow != null && this.profile != null)
 			{
-				Location location = this.profile.Locations.FirstOrDefault(l => l.Id == statusRow.LocationId);
+				Location? location = this.profile.Locations.FirstOrDefault(l => l.Id == statusRow.LocationId);
 				if (location != null)
 				{
 					bool deletePeerGroup = this.profile.Locations.Count(l => l.PeerGroup == location.PeerGroup) == 1;
 
-					StringBuilder sb = new StringBuilder("Are you sure you want to delete location \"");
+					StringBuilder sb = new("Are you sure you want to delete location \"");
 					sb.Append(statusRow.LocationName).Append('"');
 					if (deletePeerGroup)
 					{
@@ -655,22 +658,22 @@ namespace WirePeep
 			this.TryFocus(this.statusGrid);
 		}
 
-		private void CopyCanExecute(object sender, CanExecuteRoutedEventArgs e) => e.CanExecute = this.SelectedGrid?.SelectedItem != null;
+		private void CopyCanExecute(object? sender, CanExecuteRoutedEventArgs e) => e.CanExecute = this.SelectedGrid?.SelectedItem != null;
 
-		private void CopyValueExecuted(object sender, ExecutedRoutedEventArgs e)
+		private void CopyValueExecuted(object? sender, ExecutedRoutedEventArgs e)
 		{
 			CopyToClipboard(this.SelectedGrid, false);
 		}
 
-		private void CopyRowExecuted(object sender, ExecutedRoutedEventArgs e)
+		private void CopyRowExecuted(object? sender, ExecutedRoutedEventArgs e)
 		{
 			CopyToClipboard(this.SelectedGrid, true);
 		}
 
-		private void LogGridSelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
+		private void LogGridSelectedCellsChanged(object? sender, SelectedCellsChangedEventArgs e)
 		{
-			object current = e.AddedCells.Select(cell => cell.Item).FirstOrDefault();
-			object previous = e.RemovedCells.Select(cell => cell.Item).FirstOrDefault();
+			object? current = e.AddedCells.Select(cell => cell.Item).FirstOrDefault();
+			object? previous = e.RemovedCells.Select(cell => cell.Item).FirstOrDefault();
 
 			if (!ReferenceEquals(current, previous))
 			{
@@ -682,21 +685,21 @@ namespace WirePeep
 			}
 		}
 
-		private void LogGridGotFocus(object sender, RoutedEventArgs e)
+		private void LogGridGotFocus(object? sender, RoutedEventArgs e)
 		{
 			this.selectedGrid = this.logGrid;
 		}
 
-		private void StatusGridGotFocus(object sender, RoutedEventArgs e)
+		private void StatusGridGotFocus(object? sender, RoutedEventArgs e)
 		{
 			this.selectedGrid = this.statusGrid;
 		}
 
-		private void LogGridContextMenuOpening(object sender, ContextMenuEventArgs e) => this.LogGridGotFocus(sender, e);
+		private void LogGridContextMenuOpening(object? sender, ContextMenuEventArgs e) => this.LogGridGotFocus(sender, e);
 
-		private void StatusGridContextMenuOpening(object sender, ContextMenuEventArgs e) => this.StatusGridGotFocus(sender, e);
+		private void StatusGridContextMenuOpening(object? sender, ContextMenuEventArgs e) => this.StatusGridGotFocus(sender, e);
 
-		private void LogGridMouseDoubleClick(object sender, MouseButtonEventArgs e)
+		private void LogGridMouseDoubleClick(object? sender, MouseButtonEventArgs e)
 		{
 			LogRow logRow = this.SelectedLogRow;
 			if (logRow != null)
@@ -705,16 +708,16 @@ namespace WirePeep
 			}
 		}
 
-		private void StatusGridMouseDoubleClick(object sender, MouseButtonEventArgs e)
+		private void StatusGridMouseDoubleClick(object? sender, MouseButtonEventArgs e)
 		{
-			StatusRow statusRow = this.SelectedStatusRow;
+			StatusRow? statusRow = this.SelectedStatusRow;
 			if (statusRow != null)
 			{
 				this.EditLocation(statusRow);
 			}
 		}
 
-		private void WindowActivated(object sender, EventArgs e)
+		private void WindowActivated(object? sender, EventArgs e)
 		{
 			TaskbarItemInfo taskbarItem = this.TaskbarItemInfo;
 			if (taskbarItem != null)
@@ -724,7 +727,7 @@ namespace WirePeep
 			}
 		}
 
-		private void WindowStateChanged(object sender, EventArgs e)
+		private void WindowStateChanged(object? sender, EventArgs e)
 		{
 			if (this.WindowState == WindowState.Minimized)
 			{
@@ -739,12 +742,12 @@ namespace WirePeep
 			}
 		}
 
-		private void WindowClosed(object sender, EventArgs e)
+		private void WindowClosed(object? sender, EventArgs e)
 		{
 			this.Dispose();
 		}
 
-		private void WindowLoaded(object sender, RoutedEventArgs e)
+		private void WindowLoaded(object? sender, RoutedEventArgs e)
 		{
 			// This will reload the previous window placement but with a normal or maximized state (never minimized).
 			this.windowSaver.Load();
@@ -755,13 +758,13 @@ namespace WirePeep
 			//     if (this.StartMinimized) this.windowSaver.LoadStateOverride = WindowState.Minimized;
 			// Then we wouldn't see the flicker, but we'd always end up minimized on the primary taskbar and without a thumbnail image.
 			// Accepting the brief flicker seems like the best alternative.
-			if (this.StartMinimized && !this.appOptions.MinimizeToTray)
+			if (this.StartMinimized && this.appOptions != null && !this.appOptions.MinimizeToTray)
 			{
 				this.WindowState = WindowState.Minimized;
 			}
 		}
 
-		private void NotifyIconViewMenuClick(object sender, EventArgs e)
+		private void NotifyIconViewMenuClick(object? sender, EventArgs e)
 		{
 			if (!this.ShowInTaskbar)
 			{
@@ -771,12 +774,12 @@ namespace WirePeep
 			WindowsUtility.BringToFront(this);
 		}
 
-		private void NotifyIconExitMenuClick(object sender, EventArgs e)
+		private void NotifyIconExitMenuClick(object? sender, EventArgs e)
 		{
 			Commands.Exit.Execute(null, this);
 		}
 
-		private void NotifyIconMouseDoubleClick(object sender, W.MouseEventArgs e)
+		private void NotifyIconMouseDoubleClick(object? sender, W.MouseEventArgs e)
 		{
 			if (e.Button == W.MouseButtons.Left)
 			{
@@ -784,12 +787,12 @@ namespace WirePeep
 			}
 		}
 
-		private void UnselectCanExecute(object sender, CanExecuteRoutedEventArgs e)
+		private void UnselectCanExecute(object? sender, CanExecuteRoutedEventArgs e)
 		{
 			e.CanExecute = this.SelectedGrid?.SelectedItem != null;
 		}
 
-		private void UnselectExecuted(object sender, ExecutedRoutedEventArgs e)
+		private void UnselectExecuted(object? sender, ExecutedRoutedEventArgs e)
 		{
 			DataGrid grid = this.SelectedGrid;
 			if (grid != null)
@@ -799,7 +802,7 @@ namespace WirePeep
 			}
 		}
 
-		private void ViewMenuItem_SubmenuOpened(object sender, RoutedEventArgs e)
+		private void ViewMenuItem_SubmenuOpened(object? sender, RoutedEventArgs e)
 		{
 			this.simulateConnectionMenu.Visibility = ApplicationInfo.IsDebugBuild ||
 				(Keyboard.IsKeyDown(Key.LeftCtrl) && Keyboard.IsKeyDown(Key.LeftAlt) && Keyboard.IsKeyDown(Key.LeftShift))

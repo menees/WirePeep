@@ -18,7 +18,7 @@ namespace WirePeep
 	{
 		#region Constructors
 
-		public AppOptions(ISettingsNode settingsNode)
+		public AppOptions(ISettingsNode? settingsNode)
 		{
 			if (settingsNode != null)
 			{
@@ -32,9 +32,9 @@ namespace WirePeep
 			// Interesting info about %SystemRoot% vs %WinDir%: https://superuser.com/a/638335/430448
 			const string DefaultFailureSound = @"%SystemRoot%\Media\Windows Notify System Generic.wav";
 			const string DefaultReconnectSound = @"%SystemRoot%\Media\Windows Background.wav";
-			this.FailureOptions = new AlertOptions(true, DefaultFailureSound, settingsNode?.GetSubNode(nameof(this.FailureOptions), false));
-			this.ReconnectOptions = new AlertOptions(false, DefaultReconnectSound, settingsNode?.GetSubNode(nameof(this.ReconnectOptions), false));
-			this.CommonOptions = new CommonOptions(settingsNode?.GetSubNode(nameof(this.CommonOptions), false));
+			this.FailureOptions = new AlertOptions(true, DefaultFailureSound, settingsNode?.TryGetSubNode(nameof(this.FailureOptions)));
+			this.ReconnectOptions = new AlertOptions(false, DefaultReconnectSound, settingsNode?.TryGetSubNode(nameof(this.ReconnectOptions)));
+			this.CommonOptions = new CommonOptions(settingsNode?.TryGetSubNode(nameof(this.CommonOptions)));
 		}
 
 		#endregion
@@ -69,14 +69,14 @@ namespace WirePeep
 			settingsNode.SetValue(nameof(this.AlwaysOnTop), this.AlwaysOnTop);
 			settingsNode.SetValue(nameof(this.ConfirmClose), this.ConfirmClose);
 
-			this.FailureOptions.Save(settingsNode.GetSubNode(nameof(this.FailureOptions), true));
-			this.ReconnectOptions.Save(settingsNode.GetSubNode(nameof(this.ReconnectOptions), true));
-			this.CommonOptions.Save(settingsNode.GetSubNode(nameof(this.CommonOptions), true));
+			this.FailureOptions.Save(settingsNode.GetSubNode(nameof(this.FailureOptions)));
+			this.ReconnectOptions.Save(settingsNode.GetSubNode(nameof(this.ReconnectOptions)));
+			this.CommonOptions.Save(settingsNode.GetSubNode(nameof(this.CommonOptions)));
 		}
 
 		public void Apply(Window window)
 		{
-			using (RegistryKey runKey = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run", true))
+			using (RegistryKey runKey = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run", true)!)
 			{
 				// Don't let the Debug/development app blow away the Release/production app's key.
 				string keyName = nameof(WirePeep) + (ApplicationInfo.IsDebugBuild ? " Debug" : string.Empty);

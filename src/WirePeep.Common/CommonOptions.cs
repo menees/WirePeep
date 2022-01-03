@@ -16,13 +16,13 @@ namespace WirePeep
 		#region Private Data Members
 
 		private LogFileNameFormat logFileNameFormat = LogFileNameFormat.UtcNow;
-		private string logFolder;
+		private string? logFolder;
 
 		#endregion
 
 		#region Constructors
 
-		public CommonOptions(ISettingsNode settingsNode)
+		public CommonOptions(ISettingsNode? settingsNode)
 		{
 			if (settingsNode != null)
 			{
@@ -52,7 +52,7 @@ namespace WirePeep
 			}
 		}
 
-		public string LogFolder
+		public string? LogFolder
 		{
 			get
 			{
@@ -76,9 +76,9 @@ namespace WirePeep
 			settingsNode.SetValue(nameof(this.LogFolder), this.logFolder);
 		}
 
-		public string GetFullLogFileName(DateTime utcNow)
+		public string? GetFullLogFileName(DateTime utcNow)
 		{
-			string result = null;
+			string? result = null;
 
 			if (Directory.Exists(this.LogFolder))
 			{
