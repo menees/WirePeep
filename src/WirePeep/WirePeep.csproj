@@ -9,7 +9,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Menees.Windows.Presentation" Version="5.0.5" />
+		<PackageReference Include="Menees.Windows.Presentation" Version="5.0.3" />
 	</ItemGroup>
 
 	<ItemGroup>
