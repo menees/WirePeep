@@ -170,6 +170,7 @@ namespace WirePeep
 							break;
 
 						case "CableModem":
+						case "Transceiver":
 							using (Pinger pinger = new(group.Wait))
 							{
 								address = findElement.Elements("Address").Select(e => IPAddress.Parse(e.Value)).FirstOrDefault(a => pinger.TryPing(a) ?? false);

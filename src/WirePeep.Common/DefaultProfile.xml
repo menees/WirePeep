@@ -48,4 +48,11 @@
 			<Address>10.1.0.1</Address>
 		</Find>
 	</PeerGroup>
+
+	<PeerGroup Name="Local SFP" FailSeconds="4" PollSeconds="2" WaitMilliseconds="50">
+		<Find Name="Fiber SFP" Type="Transceiver">
+			<!-- Default IP for AT&T BGW320-500. -->
+			<Address>192.168.1.254</Address>
+		</Find>
+	</PeerGroup>
 </Defaults>
