@@ -45,6 +45,7 @@
 
 	<ItemGroup>
 		<AssemblyMetadata Condition="'$(BuildTime)' != ''" Include="BuildTime" Value="$(BuildTime)" />
+		<AssemblyMetadata Include="ProductUrl" Value="$(PackageProjectUrl)" />
 	</ItemGroup>
 
 	<ItemGroup Condition="$(UseCustomCodeAnalyzers)">

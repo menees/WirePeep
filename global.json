@@ -1,7 +1,0 @@
-{
-	"comment": "6.0.2 bug workaround. https://github.com/dotnet/winforms/issues/6663#issuecomment-1034371295",
-	"sdk": {
-		"version": "6.0.101",
-		"rollForward": "disable"
-	}
-}

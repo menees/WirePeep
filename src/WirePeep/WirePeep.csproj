@@ -30,11 +30,4 @@
 	    <LastGenOutput>Resources.Designer.cs</LastGenOutput>
 	  </EmbeddedResource>
 	</ItemGroup>
-
-	<!-- Workaround for WPF 6.0.2 SDK problem: https://github.com/dotnet/core/issues/7176 -->
-	<ItemGroup>
-		<FrameworkReference
-		Update="Microsoft.WindowsDesktop.App;Microsoft.WindowsDesktop.App.WPF;Microsoft.WindowsDesktop.App.WindowsForms"
-		TargetingPackVersion="6.0.0" />
-	</ItemGroup>
 </Project>
