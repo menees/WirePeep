@@ -1,5 +1,5 @@
  [![Latest Release](https://img.shields.io/github/v/release/menees/WirePeep)](https://github.com/menees/WirePeep/releases)
-![windows build](https://github.com/menees/Hasher/workflows/windows%20build/badge.svg)
+![windows build](https://github.com/menees/WirePeep/workflows/windows%20build/badge.svg)
 
 ![WirePeep Icon](src/WirePeep/Images/WirePeep.svg)
 # WirePeep
