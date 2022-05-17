@@ -85,21 +85,6 @@ namespace WirePeep
 
 		#region Private Properties
 
-		private RowDefinition[] SplitterTargetRows
-		{
-			get
-			{
-				int splitterRow = Grid.GetRow(this.splitter);
-				var result = new[]
-				{
-					this.windowLayoutGrid.RowDefinitions[splitterRow - 1],
-					this.windowLayoutGrid.RowDefinitions[splitterRow + 1],
-				};
-
-				return result;
-			}
-		}
-
 		private DataGrid SelectedGrid => this.selectedGrid ?? this.statusGrid;
 
 		private LogRow SelectedLogRow => (LogRow)this.logGrid.SelectedItem;
@@ -443,43 +428,10 @@ namespace WirePeep
 		#region Private Event Handlers
 
 		private void WindowSaverLoadSettings(object? sender, SettingsEventArgs e)
-		{
-			var settings = e.SettingsNode;
-
-			ISettingsNode? splitterNode = settings.TryGetSubNode(nameof(GridSplitter));
-			if (splitterNode != null)
-			{
-				RowDefinition[] splitterTargetRows = this.SplitterTargetRows;
-				for (int i = 0; i < splitterTargetRows.Length; i++)
-				{
-					ISettingsNode? rowNode = splitterNode.TryGetSubNode($"Row{i}");
-					if (rowNode != null)
-					{
-						double value = rowNode.GetValue(nameof(GridLength.Value), 1.0);
-						GridUnitType unitType = rowNode.GetValue(nameof(GridLength.GridUnitType), GridUnitType.Star);
-						RowDefinition row = splitterTargetRows[i];
-						row.Height = new GridLength(value, unitType);
-					}
-				}
-			}
-		}
+			=> WindowSaver.LoadSplits(e.SettingsNode, this.splitter);
 
 		private void WindowSaverSaveSettings(object? sender, SettingsEventArgs e)
-		{
-			var settings = e.SettingsNode;
-
-			settings.DeleteSubNode(nameof(GridSplitter));
-			ISettingsNode splitterNode = settings.GetSubNode(nameof(GridSplitter));
-			RowDefinition[] splitterTargetRows = this.SplitterTargetRows;
-			for (int i = 0; i < splitterTargetRows.Length; i++)
-			{
-				RowDefinition row = splitterTargetRows[i];
-				GridLength rowHeight = row.Height;
-				ISettingsNode rowNode = splitterNode.GetSubNode($"Row{i}");
-				rowNode.SetValue(nameof(rowHeight.Value), rowHeight.Value);
-				rowNode.SetValue(nameof(rowHeight.GridUnitType), rowHeight.GridUnitType);
-			}
-		}
+			=> WindowSaver.SaveSplits(e.SettingsNode, this.splitter);
 
 		private void WindowClosing(object? sender, CancelEventArgs e)
 		{
