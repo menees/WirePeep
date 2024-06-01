@@ -9,7 +9,7 @@
 		<RepositoryUrl>https://github.com/menees/WirePeep</RepositoryUrl>
 		<GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
 		<SignAssembly>true</SignAssembly>
-		<LangVersion>latest</LangVersion>
+		<LangVersion>12</LangVersion>
 		<Copyright>Copyright © 2020-$([System.DateTime]::UtcNow.ToString(`yyyy`)) Bill Menees</Copyright>
 
 		<!-- When TargetFrameworks changes, also update the app's Properties\PublishProfiles\*.pubxml files. -->
@@ -18,11 +18,13 @@
 		<RepoSrcFolder>$(MSBuildThisFileDirectory)</RepoSrcFolder>
 		<CodeAnalysisRuleSet>$(RepoSrcFolder)WirePeep.ruleset</CodeAnalysisRuleSet>
 		<AssemblyOriginatorKeyFile>$(RepoSrcFolder)WirePeep.snk</AssemblyOriginatorKeyFile>
+		<GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
 		<UseCustomCodeAnalyzers>true</UseCustomCodeAnalyzers>
 		<Nullable>enable</Nullable>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<ProduceReferenceAssembly>false</ProduceReferenceAssembly>
 		<_SkipUpgradeNetAnalyzersNuGetWarning >true</_SkipUpgradeNetAnalyzersNuGetWarning>
+		<IsPublishable>false</IsPublishable>
 
 		<!-- Make the assembly, file, and NuGet package versions the same. -->
 		<Version>1.1.5</Version>
@@ -47,6 +49,10 @@
 	<ItemGroup>
 		<AssemblyMetadata Condition="'$(BuildTime)' != ''" Include="BuildTime" Value="$(BuildTime)" />
 		<AssemblyMetadata Include="ProductUrl" Value="$(PackageProjectUrl)" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="System.Resources.Extensions" Version="6.0.0"/>
 	</ItemGroup>
 
 	<ItemGroup Condition="$(UseCustomCodeAnalyzers)">

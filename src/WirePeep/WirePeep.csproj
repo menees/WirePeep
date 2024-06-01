@@ -6,6 +6,7 @@
 		<UseWindowsForms>true</UseWindowsForms>
 		<Description>Free, open-source network downtime monitor</Description>
 		<ApplicationIcon>Images\WirePeep.ico</ApplicationIcon>
+		<IsPublishable>true</IsPublishable>
 	</PropertyGroup>
 
 	<ItemGroup>

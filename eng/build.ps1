@@ -25,9 +25,7 @@ if ($build)
 {
 	foreach ($configuration in $configurations)
 	{
-		# Restore NuGet packages first
-		msbuild $slnPath /p:Configuration=$configuration /t:Restore /v:$msBuildVerbosity /nologo
-		msbuild $slnPath /p:Configuration=$configuration /v:$msBuildVerbosity /nologo
+		dotnet build $slnPath /p:Configuration=$configuration /v:$msBuildVerbosity /nologo
 	}
 }
 
