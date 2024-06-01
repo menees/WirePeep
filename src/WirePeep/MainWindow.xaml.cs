@@ -45,7 +45,7 @@ namespace WirePeep
 		private StateManager? stateManager;
 		private Timer? backgroundTimer;
 		private int updatingLock;
-		private bool closing;
+		private ClosingState closingState;
 		private ConnectionState? simulateConnection;
 		private DataGrid? selectedGrid;
 		private Logger? logger;
@@ -61,7 +61,7 @@ namespace WirePeep
 			this.InitializeComponent();
 
 			this.statusRows = (StatusRowCollection)this.Resources["StatusRows"];
-			this.statusRowMap = new Dictionary<Guid, StatusRow>();
+			this.statusRowMap = [];
 
 			this.logRows = (LogRowCollection)this.Resources["LogRows"];
 			this.failedPeerGroupToLogRowMap = new Dictionary<Guid, LogRow>(this.statusRowMap.Comparer);
@@ -71,6 +71,17 @@ namespace WirePeep
 			this.windowSaver.SaveSettings += this.WindowSaverSaveSettings;
 
 			this.notifyIcon = this.CreateNotifyIcon();
+		}
+
+		#endregion
+
+		#region Private Enums
+
+		private enum ClosingState
+		{
+			None,
+			Requested,
+			Confirmed,
 		}
 
 		#endregion
@@ -143,7 +154,7 @@ namespace WirePeep
 
 		private static void CopyToClipboard(DataGrid source, bool copyRow)
 		{
-			IList<DataGridCellInfo> copyCells = copyRow ? source.SelectedCells : new[] { source.CurrentCell };
+			IList<DataGridCellInfo> copyCells = copyRow ? source.SelectedCells : [source.CurrentCell];
 			StringBuilder sb = new();
 			foreach (DataGridCellInfo cell in copyCells)
 			{
@@ -212,7 +223,7 @@ namespace WirePeep
 
 		private void UpdateLogRows(IEnumerable<PeerGroupState> peerGroupStates)
 		{
-			List<PeerGroupState> failedChanged = new(0);
+			List<PeerGroupState> failedChanged = [];
 
 			HashSet<Guid> currentPeerGroups = new(this.failedPeerGroupToLogRowMap.Comparer);
 			foreach (PeerGroupState peerGroupState in peerGroupStates)
@@ -397,12 +408,12 @@ namespace WirePeep
 			notifyIcon.Visible = true;
 			notifyIcon.MouseDoubleClick += this.NotifyIconMouseDoubleClick;
 
-			notifyIconMenu.Items.AddRange(new W.ToolStripItem[]
-			{
+			notifyIconMenu.Items.AddRange(
+			[
 				notifyIconViewMenu,
 				notifyIconSeparator,
 				notifyIconExitMenu,
-			});
+			]);
 
 			// notifyIconMenu.ShowImageMargin = false;
 			notifyIconViewMenu.Font = new Font(notifyIconMenu.Font, System.Drawing.FontStyle.Bold);
@@ -435,14 +446,25 @@ namespace WirePeep
 
 		private void WindowClosing(object? sender, CancelEventArgs e)
 		{
-			if (!this.IsSessionEnding && (this.appOptions?.ConfirmClose ?? false) && !e.Cancel)
+			if (!this.IsSessionEnding
+				&& (this.appOptions?.ConfirmClose ?? false)
+				&& !e.Cancel
+				&& this.closingState == ClosingState.None)
 			{
-				e.Cancel = !WindowsUtility.ShowQuestion(this, "Are you sure you want to exit?");
+				this.closingState = ClosingState.Requested;
+				try
+				{
+					e.Cancel = !WindowsUtility.ShowQuestion(this, "Are you sure you want to exit?");
+				}
+				finally
+				{
+					this.closingState = ClosingState.None;
+				}
 			}
 
 			if (!e.Cancel)
 			{
-				this.closing = true;
+				this.closingState = ClosingState.Confirmed;
 				this.backgroundTimer?.Dispose();
 				this.CloseLogger();
 			}
@@ -450,7 +472,10 @@ namespace WirePeep
 
 		private void ExitExecuted(object? sender, ExecutedRoutedEventArgs e)
 		{
-			this.Close();
+			if (this.closingState == ClosingState.None)
+			{
+				this.Close();
+			}
 		}
 
 		private void ViewOptionsExecuted(object? sender, ExecutedRoutedEventArgs e)
@@ -523,7 +548,9 @@ namespace WirePeep
 		private void BackgroundTimerCallback(object? state)
 		{
 			// Only let one Update run at a time. If the callback takes longer than 1 second, it will be invoked again from another thread.
-			if (!this.closing && this.stateManager != null && Interlocked.CompareExchange(ref this.updatingLock, 1, 0) == 0)
+			if (this.closingState != ClosingState.Confirmed
+				&& this.stateManager != null
+				&& Interlocked.CompareExchange(ref this.updatingLock, 1, 0) == 0)
 			{
 				try
 				{
