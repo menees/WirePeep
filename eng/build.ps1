@@ -58,7 +58,7 @@ if ($publish)
 					# The Publish target in "C:\Program Files\dotnet\sdk\3.1.101\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.CrossTargeting.targets"
 					# throws an exception if the .csproj uses <TargetFrameworks>. We have to override that and force a specific <TargetFramework> instead.
 					$targetFramework = GetXmlPropertyValue $profile 'TargetFramework'
-					msbuild $slnPath /t:Publish /p:PublishProfile=$profileName /p:TargetFramework=$targetFramework /v:$msBuildVerbosity /nologo /p:Configuration=$configuration
+					dotnet publish $slnPath /t:Publish /p:PublishProfile=$profileName /p:TargetFramework=$targetFramework /v:$msBuildVerbosity /nologo /p:Configuration=$configuration
 
 					Remove-Item "$artifactsPath\$profileName\*.pdb"
 
