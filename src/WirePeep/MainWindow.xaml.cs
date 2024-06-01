@@ -408,12 +408,16 @@ namespace WirePeep
 			notifyIcon.Visible = true;
 			notifyIcon.MouseDoubleClick += this.NotifyIconMouseDoubleClick;
 
-			notifyIconMenu.Items.AddRange(
-			[
+#pragma warning disable IDE0300 // Simplify collection initialization. Causes compiler ambiguity in GitHub action build.
+			// The call is ambiguous between the following methods or properties:
+			// 'ToolStripItemCollection.AddRange(ToolStripItem[])' and 'ToolStripItemCollection.AddRange(ToolStripItemCollection)'
+			notifyIconMenu.Items.AddRange(new W.ToolStripItem[]
+			{
 				notifyIconViewMenu,
 				notifyIconSeparator,
 				notifyIconExitMenu,
-			]);
+			});
+#pragma warning restore IDE0300 // Simplify collection initialization
 
 			// notifyIconMenu.ShowImageMargin = false;
 			notifyIconViewMenu.Font = new Font(notifyIconMenu.Font, System.Drawing.FontStyle.Bold);
