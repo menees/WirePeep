@@ -23,7 +23,7 @@
 		<Nullable>enable</Nullable>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<ProduceReferenceAssembly>false</ProduceReferenceAssembly>
-		<_SkipUpgradeNetAnalyzersNuGetWarning >true</_SkipUpgradeNetAnalyzersNuGetWarning>
+		<_SkipUpgradeNetAnalyzersNuGetWarning>true</_SkipUpgradeNetAnalyzersNuGetWarning>
 		<IsPublishable>false</IsPublishable>
 
 		<!-- Make the assembly, file, and NuGet package versions the same. -->
